@@ -11,6 +11,7 @@ public class DataLoaderExample extends DataLoaderable {
 		this.id = nextId++;
 		this.testString = "Default";
 		this.testInt = 0;
+		// Obviously don't do this in a real project as it will recusively create instances, but this is just for example purposes.
 		this.testObject = new DataLoaderExample();
 	}
 	
