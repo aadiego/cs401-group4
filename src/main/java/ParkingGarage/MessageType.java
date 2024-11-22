@@ -5,6 +5,6 @@ public enum MessageType {
     ENTER,  
     EXIT,   
     REPORT,
-    ERROR,
+    QUIT,
     // add new types when thought of
 }
