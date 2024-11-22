@@ -11,7 +11,7 @@ public class Client {
         try {
             // Create inputStream, assign user given port number
             Scanner sc = new Scanner(System.in);
-            System.out.print("Enter the port number: ");
+            System.out.print("Enter the port number: <12345> ");
             int port = sc.nextInt();
 
             // Take server address from user 
