@@ -2,12 +2,12 @@ package ParkingGarage;
 import org.json.JSONObject;
 
 public class Garage extends DataLoaderable {
-	private int id;
-	private String name;
-	private String address;
-	private Fee currentParkingFee;
-	private int occupiedSpaces;
-	private int totalSpaces;
+	private int id; // unique identifier
+	private String name; // Name of the garage
+	private String address; // Address of the garage
+	private Fee currentParkingFee; // Current parking fee (of type fee).
+	private int occupiedSpaces; // Number of occupied spaces
+	private int totalSpaces; // Total number of parking spaces
 	
 	// public constructor
 	public Garage(String name, String address, int totalSpaces) {
@@ -71,7 +71,7 @@ public class Garage extends DataLoaderable {
 		this.totalSpaces = totalSpaces;
 	}
 	
-	// update occupied spaces
+	// Increment the occupiedSpaces by 1.
 	public void decrementAvailableSpaces() {
 		if (occupiedSpaces < totalSpaces) {
 			occupiedSpaces++;
@@ -80,7 +80,7 @@ public class Garage extends DataLoaderable {
 		}
 	}
 	
-	// Increment available spaces
+	// Decrement the occupiedSpaces by 1
 	public void incrementAvailableSpaces() {
 		if (occupiedSpaces > 0) {
 			occupiedSpaces--;
@@ -124,5 +124,17 @@ public class Garage extends DataLoaderable {
         DataLoader dataLoader = new DataLoader();
         dataLoader.put("Garage_" + id, garageJson);
         dataLoader.saveData();
+    }
+    
+    @Override
+    public String toString() {
+        return "Garage{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", address='" + address + '\'' +
+                ", totalSpaces=" + totalSpaces +
+                ", occupiedSpaces=" + occupiedSpaces +
+                ", currentParkingFee=" + (currentParkingFee != null ? currentParkingFee.toString() : "None") +
+                '}';
     }
 }

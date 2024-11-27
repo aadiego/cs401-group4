@@ -3,9 +3,9 @@ package ParkingGarage;
 import org.json.JSONObject;
 
 public class Fee extends DataLoaderable {
-	private int id;
-	private FeeType type;
-	private int cost;
+	private int id; // fee id
+	private FeeType type; // type of fee (FeeType)
+	private int cost; // cost of the fee
 	
 	// public constructor
 	public Fee(FeeType type, int cost) {

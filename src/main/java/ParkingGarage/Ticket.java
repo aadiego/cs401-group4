@@ -3,19 +3,21 @@ import java.time.LocalDateTime;
 import org.json.JSONObject;
 
 public class Ticket extends DataLoaderable {
-	private int id;
-	private Garage garage;
-	private Fee ticketFee;
-	private LocalDateTime entryDateTime;
-	private LocalDateTime exitDateTime;
+	private int id; // Ticket id
+	private Garage garage; // Garage associated with the ticket
+	private Fee ticketFee; // Fee for the ticket
+	private LocalDateTime entryDateTime; // Vehicle entry time
+	private LocalDateTime exitDateTime; // Vehicle exit time
 	// private Payment payment; 
 	
 	
+	// public constructor
 	public Ticket(Garage garage) {
 		this.garage = garage;
 		this.entryDateTime = LocalDateTime.now();
 	}
 	
+	// private constructor
 	private Ticket(int id, Garage garage, Fee ticketFee, LocalDateTime entryDateTime, LocalDateTime exitDateTime) {
 		this.id = id;
 		this.garage = garage;
