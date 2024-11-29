@@ -11,7 +11,16 @@ public class User {
     private Garage assignedGarage;
 
     // constructor
-    public User(int userId, String name, String username, String password, RoleType role, Garage assignedGarage) {
+    public User(String name, String username, String password, RoleType role, Garage assignedGarage) {
+        this.userId = Integer.MIN_VALUE;  // TODO: Update to use auto incrementing number function
+        this.name = name;
+        this.username = username;
+        this.password = password;
+        this.role = role;
+        this.assignedGarage = assignedGarage;
+    }
+    
+    private User(int userId, String name, String username, String password, RoleType role, Garage assignedGarage) {
         this.userId = userId;
         this.name = name;
         this.username = username;
@@ -60,7 +69,23 @@ public class User {
 
     // load method
     public static User load(int userId) {
-        return null;
+    	DataLoader dataLoader = new DataLoader();
+    	JSONObject users = dataLoader.getJSONObject("users");
+    	
+    	JSONObject user = users.has(Integer.toString(userId))
+    					? users.getJSONObject(Integer.toString(userId))
+    					: null;
+    	
+    	if(users != null) {
+    		return new User(userId,
+    				user.getString("name"),
+    				user.getString("username"),
+    				user.getString("passwprd"),
+    				RoleType.valueOf(user.getString("role")),
+    				Garage.load(user.getJSONObject("assignedGarageId")));
+    	} else {
+    		return null;
+    	}
     }
 
     public static User load(JSONObject object) {
@@ -70,18 +95,24 @@ public class User {
         String username = object.getString("username");
         String password = object.getString("password");
         RoleType role = RoleType.valueOf(object.getString("role"));
-        Garage assignedGarage = Garage.load(object.getJSONObject("assignedGarage"));
+        Garage assignedGarage = Garage.load(object.getJSONObject("assignedGarageId"));
 
         return new User(userId, name, username, password, role, assignedGarage);
-
     }
 
     // save method
     public void save() {
+    	JSONObject user = new JSONObject();
+    	user.put("name", this.name);
+    	user.put("username", this.username);
+    	user.put("password", this.password);
+        user.put("role", this.role.toString());
+        user.put("assignedGarageId", this.assignedGarage.getId());
         
+        DataLoader dataLoader = new DataLoader();
+        dataLoader.getJSONObject("users").put(Integer.toString(this.userId), user);
+        dataLoader.saveData();
     }
 
-    // for load and save, dont know if we want to save user JSON objects?
-    // or if we have one JSON object and get user based on id?
 
 }
