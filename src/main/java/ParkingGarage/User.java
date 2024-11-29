@@ -12,7 +12,7 @@ public class User {
 
     // constructor
     public User(String name, String username, String password, RoleType role, Garage assignedGarage) {
-        this.userId = Integer.MIN_VALUE;  // TODO: Update to use auto incrementing number function
+        this.userId = DataLoader.getNextId("users");
         this.name = name;
         this.username = username;
         this.password = password;

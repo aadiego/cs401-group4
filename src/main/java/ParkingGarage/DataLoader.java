@@ -16,6 +16,13 @@ public class DataLoader {
 			loadData();
 		}
 	}
+	
+	public static int getNextId(String name) {
+		return data
+				.getJSONObject(name)
+				.increment("autoIncrement")
+				.getInt("autoIncrement");
+	}
 
 	// Load data from file
 	private void loadData() {
