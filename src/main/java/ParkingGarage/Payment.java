@@ -1,15 +1,7 @@
 package ParkingGarage;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+
 import java.time.LocalDateTime;
-
-import org.json.JSONArray;
 import org.json.JSONObject;
-import org.json.JSONTokener;
-
-
 
 public class Payment {
     // variables
@@ -21,12 +13,14 @@ public class Payment {
 
     // public constructor 
     public Payment(PaymentMethod paymentMethod, int value) {
+        this.paymentId = DataLoader.getNextId("payments");
         this.paymentMethod = paymentMethod;
         this.value = value;
         this.capturedDateTime = LocalDateTime.now();
     }
 
     public Payment(User capturedBy, PaymentMethod paymentMethod, int value) {
+        this.paymentId = DataLoader.getNextId("payments");
         this.capturedBy = capturedBy;
         this.paymentMethod = paymentMethod;
         this.value = value;
@@ -61,15 +55,62 @@ public class Payment {
         return value;
     }
 
+    public static Payment load(int paymentId) {
+        DataLoader dataLoader = new DataLoader();
+        JSONObject payments = dataLoader.getJSONObject("payments");
+
+        // search for paymentID
+        JSONObject payment = payments.has(Integer.toString(paymentId))
+                             ? payments.getJSONObject(Integer.toString(paymentId))
+                             : null;
+        
+        // load payment variables from JSONObject
+        if (payment != null) {
+            return new Payment(
+                paymentId,
+                LocalDateTime.parse(payment.getString("capturedBy")),
+                payment.has("capturedBy") && !payment.isNull("capturedBy")
+                    ? User.load(payment.getInt("capturedBy"))
+                    : null,
+                PaymentMethod.valueOf(payment.getString("paymentMethod")),
+                payment.getInt("value")
+            );
+        } else {
+            return null;
+        }
+
+    }
+
     public static Payment load(JSONObject object) {
-        // figure out JSON
+        int paymentId = object.getInt("paymentid");
+        LocalDateTime capturedDateTime = LocalDateTime.parse(object.getString("capturedDateTime"));
+        PaymentMethod paymentMethod = PaymentMethod.valueOf(object.getString("paymentMethod"));
+        int value = object.getInt("value");
+
+        User capturedBy = null;
+        if (object.has("capturedBy") && !object.isNull("capturedBy")) {
+            int capturedById = object.getInt("capturedBy");
+            capturedBy = User.load(capturedById);
+        }
+
+        return new Payment(paymentId, capturedDateTime, capturedBy, paymentMethod, value);
     }
 
     public void save() {
-        // figure out JSON
+        // save payment variables into JSON object
+        JSONObject payment = new JSONObject();
+        payment.put("capturedDateTime", this.capturedDateTime.toString());
+        payment.put("paymentMethod", this.paymentMethod.toString());
+        payment.put("value", this.value);
+
+        if (this.capturedBy != null) {
+            payment.put("capturedBy", this.capturedBy.getUserId());
+        } else {
+            payment.put("capturedBy", JSONObject.NULL);
+        }
+
+        DataLoader dataLoader = new DataLoader();
+        dataLoader.getJSONObject("payments").put(Integer.toString(this.paymentId), payment);
+        dataLoader.saveData();
     }
-
-    
-
-
 }

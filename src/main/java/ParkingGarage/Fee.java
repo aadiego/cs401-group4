@@ -9,14 +9,15 @@ public class Fee extends DataLoaderable {
 	
 	// public constructor
 	public Fee(FeeType type, int cost) {
-		if (cost < 0) {
-			throw new IllegalArgumentException("Cost cannot be negative.");
-		}
-		this.type = type;
-		this.cost = cost;
+	    if (cost < 0) {
+	        throw new IllegalArgumentException("Cost cannot be negative.");
+	    }
+	    this.id = DataLoader.getNextId("fees"); // Automatically assigns a unique ID.
+	    this.type = type;
+	    this.cost = cost;
 	}
 	
-	// private constructor
+	// private constructor for dataLoader
 	private Fee(int id, FeeType type, int cost) {
 		this.id = id;
 		this.type = type;
@@ -41,34 +42,48 @@ public class Fee extends DataLoaderable {
 	public static Fee load(int id) {
 		try {
 			DataLoader dataLoader = new DataLoader();
-			JSONObject feeJson = dataLoader.getJSONObject("Fee_" + id);
-			return load(feeJson);
+			JSONObject fees = dataLoader.getJSONObject("fees");
+			
+			if(fees.has(Integer.toString(id))) {
+				JSONObject fee = fees.getJSONObject(Integer.toString(id));
+				return new Fee(id, FeeType.valueOf(fee.getString("type")), fee.getInt("cost"));
+			} else {
+				System.err.println("Fee with ID " + id + "not found.");
+			}
 		} catch (Exception e) {
-			System.err.println("Failed to load Fee with ID: " + id);
-			e.printStackTrace();
-			return null;
+			System.err.println("Error loading Fee with ID " + id + ": " + e.getMessage());
 		}
-
+		return null; // Return null if loading fails
 	}
 	
 	// Static method to load a fee from a JSON object
 	public static Fee load(JSONObject object) {
-		int id = object.getInt("id");
-		FeeType type = FeeType.valueOf(object.getString("type"));
-		int  cost = object.getInt("cost");
-		return new Fee(id, type, cost);
+		try {
+			int feeId = object.getInt("id");
+			FeeType type = FeeType.valueOf(object.getString("type").toUpperCase());
+			int cost = object.getInt("cost");			
+			return new Fee(feeId, type, cost);
+		} catch (Exception e) {
+			System.err.println("Unexpected error loading Fee: " + e.getMessage());
+		}
+		return null;
 	}
 	
-	// Save fee data to DataLoader
+	// Save to JSON
 	@Override
 	public void save() {
-		JSONObject feeJson = new JSONObject();
-		feeJson.put("id", id);
-		feeJson.put("type", type.name());
-		feeJson.put("cost", cost);
-		DataLoader dataLoader = new DataLoader();
-		dataLoader.put("Fee_" + id, feeJson);
-		dataLoader.saveData();
+		try {
+			JSONObject fee = new JSONObject();
+			fee.put("id", this.id);
+			fee.put("type", this.type.name());
+			fee.put("cost", this.cost);
+			
+			DataLoader dataLoader = new DataLoader();
+			dataLoader.getJSONObject("fees").put(Integer.toString(this.id), fee);
+			dataLoader.saveData();
+		} catch (Exception e) {
+			System.err.println("Error saving Fee with ID " + this.id + ": " + e.getMessage());
+		}
 	}
 	
 	@Override

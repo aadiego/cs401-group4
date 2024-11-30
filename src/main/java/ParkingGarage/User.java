@@ -76,11 +76,11 @@ public class User {
     					? users.getJSONObject(Integer.toString(userId))
     					: null;
     	
-    	if(users != null) {
+    	if (users != null) {
     		return new User(userId,
     				user.getString("name"),
     				user.getString("username"),
-    				user.getString("passwprd"),
+    				user.getString("password"),
     				RoleType.valueOf(user.getString("role")),
     				Garage.load(user.getJSONObject("assignedGarageId")));
     	} else {
@@ -96,7 +96,7 @@ public class User {
         String password = object.getString("password");
         RoleType role = RoleType.valueOf(object.getString("role"));
         Garage assignedGarage = Garage.load(object.getJSONObject("assignedGarageId"));
-
+    
         return new User(userId, name, username, password, role, assignedGarage);
     }
 
