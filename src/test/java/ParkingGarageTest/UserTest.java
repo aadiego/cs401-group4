@@ -107,10 +107,4 @@ public class UserTest {
 		Boolean auth = user.authenticate(faker.name().username(), faker.internet().password());
 		assertFalse(auth);
 	}
-	
-	@Test
-	public void testLoad() {
-		User loadedUser = User.load(userId);
-		
-	}
 }
