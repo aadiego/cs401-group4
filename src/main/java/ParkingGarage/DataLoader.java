@@ -19,10 +19,20 @@ public class DataLoader {
 	
 	public static int getNextId(String name) {
 		DataLoader dataLoader = new DataLoader();
-		int nextId = data
-				.getJSONObject(name)
-				.increment("autoIncrement")
-				.getInt("autoIncrement");
+		
+		int nextId;
+		if(data.has(name)) {
+			nextId = data
+					.getJSONObject(name)
+					.increment("autoIncrement")
+					.getInt("autoIncrement");
+		} else {
+			nextId = 1;
+			JSONObject object = new JSONObject();
+			object.put("autoIncrement", nextId);
+			data.put(name, object);
+		}
+		
 		dataLoader.saveData();
 		return nextId;
 	}
@@ -42,6 +52,10 @@ public class DataLoader {
 				while (scanner.hasNextLine()) {
 					// Grab the next line of data from the file
 					rawJsonString += scanner.nextLine();
+				}
+				
+				if (rawJsonString.equals("")) {
+					rawJsonString = "{}";
 				}
 
 				// Close the scanner, set the modified flag to false, and return the raw JSON
