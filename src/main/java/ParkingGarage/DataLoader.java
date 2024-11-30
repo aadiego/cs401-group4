@@ -18,10 +18,13 @@ public class DataLoader {
 	}
 	
 	public static int getNextId(String name) {
-		return data
+		DataLoader dataLoader = new DataLoader();
+		int nextId = data
 				.getJSONObject(name)
 				.increment("autoIncrement")
 				.getInt("autoIncrement");
+		dataLoader.saveData();
+		return nextId;
 	}
 
 	// Load data from file
