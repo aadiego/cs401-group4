@@ -11,9 +11,11 @@ public class Garage extends DataLoaderable {
 	
 	// public constructor
 	public Garage(String name, String address, int totalSpaces) {
+		this.id = DataLoader.getNextId("garages");
 		this.name = name;
 		this.address = address;
 		this.totalSpaces = totalSpaces;
+		this.occupiedSpaces = 0;
 	}
 	
 	// private constructor
@@ -63,8 +65,8 @@ public class Garage extends DataLoaderable {
 		this.address = address;
 	}
 	
-	public void setParkingFee(Fee fee) {
-		this.currentParkingFee = fee;
+	public void setParkingFee(Fee parkingFee) {
+		this.currentParkingFee = parkingFee;
 	}
 	
 	public void setTotalSpaces(int totalSpaces) {
@@ -91,39 +93,84 @@ public class Garage extends DataLoaderable {
 	
 	// static method to load garage by ID
 	public static Garage load(int id) {
-		DataLoader dataLoader = new DataLoader();
-		JSONObject garageJson = dataLoader.getJSONObject("Garage_" + id);
-		return load(garageJson);
+		try {
+			DataLoader dataLoader = new DataLoader();
+			JSONObject garages = dataLoader.getJSONObject("garages");
+			
+			if (garages.has(Integer.toString(id))) {
+				JSONObject garageJson = garages.getJSONObject(Integer.toString(id));
+				
+				// Extract Garage Fields
+				String name = garageJson.getString("name");
+				String address = garageJson.getString("address");
+				int totalSpaces = garageJson.getInt("totalSpaces");
+				int occupiedSpaces = garageJson.getInt("occupiedSpaces");
+				
+				Fee parkingFee = null;
+				if (garageJson.has("currentParkingFee")) {
+					parkingFee = Fee.load(garageJson.getJSONObject("currentParkingFee"));
+				}
+				
+				Garage garage = new Garage(id, name, address, parkingFee, totalSpaces);
+				garage.occupiedSpaces = occupiedSpaces;
+				return garage;
+			} else {
+				System.err.println("Garage with ID " + id + " not found.");
+			}
+		} catch (Exception e) {
+			System.err.println("Error loading Garage with ID " + id + ": " + e.getMessage());
+		}
+		return null;
 	}
-	
+
 	// static method to load garage from JSON object
 	public static Garage load(JSONObject object) {
 		try {
-			int id = object.getInt("id");
+			int garageId = object.getInt("id");
 			String name = object.getString("name");
 			String address = object.getString("address");
-			Fee fee = Fee.load(object.getJSONObject("currentParkingFee"));
 			int totalSpaces = object.getInt("totalSpaces");
-			return new Garage(id, name, address, fee, totalSpaces);
+			int occupiedSpaces = object.getInt("occupiedSpaces");
+			
+			Fee parkingFee = null;
+			if (object.has("currentParkingFee")) {
+				parkingFee = Fee.load(object.getJSONObject("currentParkingFee"));
+			}
+			Garage garage = new Garage(garageId, name, address, parkingFee, totalSpaces);
+			garage.occupiedSpaces = occupiedSpaces;
+			return garage;
 		} catch (Exception e) {
-			System.err.println("Error loading Garage from JSON: " + e.getMessage());
-			return null;
+			System.err.println("Unexpected error loading Garage: " + e.getMessage());
 		}
+		return null;
 	}
-	
-	// Save garage data to DataLoader
+
+    // Save to JSON
     @Override
     public void save() {
-        JSONObject garageJson = new JSONObject();
-        garageJson.put("id", id);
-        garageJson.put("name", name);
-        garageJson.put("address", address);
-        garageJson.put("totalSpaces", totalSpaces);
-        garageJson.put("occupiedSpaces", occupiedSpaces);
-        garageJson.put("currentParkingFee", currentParkingFee);
-        DataLoader dataLoader = new DataLoader();
-        dataLoader.put("Garage_" + id, garageJson);
-        dataLoader.saveData();
+    	try {
+    		JSONObject garage = new JSONObject();
+    		garage.put("id", this.id);
+    		garage.put("name", this.name);
+    		garage.put("address", this.address);
+    		garage.put("totalSpaces", this.totalSpaces);
+    		garage.put("occupiedSpaces", this.occupiedSpaces);
+    		
+    		if (this.currentParkingFee != null) {
+    			JSONObject parkingFee = new JSONObject();
+    			parkingFee.put("id", this.currentParkingFee.getId());
+    			parkingFee.put("type", this.currentParkingFee.getType().name());
+    			parkingFee.put("cost", this.currentParkingFee.getCost());
+    			garage.put("currentParkingFee", parkingFee);
+    		}
+    		
+    		DataLoader dataLoader = new DataLoader();
+    		dataLoader.getJSONObject("garages").put(Integer.toString(this.id), garage);
+    		dataLoader.saveData();
+    		
+    	} catch (Exception e) {
+    		System.err.println("Error saving Garage with ID " + this.id + ": " + e.getMessage());
+    	}
     }
     
     @Override

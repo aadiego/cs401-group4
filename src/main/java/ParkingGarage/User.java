@@ -80,7 +80,7 @@ public class User {
     		return new User(userId,
     				user.getString("name"),
     				user.getString("username"),
-    				user.getString("passwprd"),
+    				user.getString("password"),
     				RoleType.valueOf(user.getString("role")),
     				Garage.load(user.getJSONObject("assignedGarageId")));
     	} else {
