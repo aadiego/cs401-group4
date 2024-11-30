@@ -1,41 +1,35 @@
 package ParkingGarage;
+
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Message implements Serializable {
+    private final MessageType type;
+    private final Map<String, Object> data;
 
-    private MessageType messageType;
-    private String status;
-    private String content;
-    // can change message attributes 
-
-    // dont know if we want to add some way to filter reports through messages 
-    // maybe with status?
-
-    // also maybe dont even need content variable
-
-    public Message(MessageType messageType, String status, String content) {
-        this.messageType = messageType;
-        this.status = status;
-        this.content = content;
+    public Message(MessageType type) {
+        this.type = type;
+        this.data = new HashMap<>();
     }
 
-    public MessageType getMessageType() {
-        return messageType;
+    public void setData(String key, Object value) {
+        data.put(key, value);
     }
 
-    public String getStatus() {
-        return status;
+    public MessageType getType() {
+        return type;
     }
 
-    public String getContent() {
-        return content;
+    public Object getData(String key) {
+        return data.get(key);
     }
-
-    // dont know if we need setters if
-    // we just create new messages for each response 
 
     @Override
     public String toString() {
-        return "type: " + messageType + ", Status: " + status + ", Content: " + content;
+        return "Message{" +
+                "type=" + type +
+                ", data=" + data +
+                '}';
     }
 }

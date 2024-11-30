@@ -1,10 +1,7 @@
 package ParkingGarage;
 
 public enum MessageType {
-    LOGIN,
-    ENTER,  
-    EXIT,   
+    ENTER_GARAGE,
+    EXIT_GARAGE,
     REPORT,
-    QUIT,
-    // add new types when thought of
 }
