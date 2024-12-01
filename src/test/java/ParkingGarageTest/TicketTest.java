@@ -1,8 +1,17 @@
-package ParkingGarage;
+package ParkingGarageTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+
+import ParkingGarage.DataLoader;
+import ParkingGarage.Fee;
+import ParkingGarage.FeeType;
+import ParkingGarage.Garage;
+import ParkingGarage.Payment;
+import ParkingGarage.PaymentMethod;
+import ParkingGarage.Ticket;
+
 import java.time.LocalDateTime;
 import java.util.List;
 

@@ -1,9 +1,13 @@
-package ParkingGarage;
+package ParkingGarageTest;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
+
+import ParkingGarage.Fee;
+import ParkingGarage.FeeType;
+import ParkingGarage.Garage;
 
 class GarageTest {
 
