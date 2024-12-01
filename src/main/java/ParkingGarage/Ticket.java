@@ -65,53 +65,68 @@ public class Ticket extends DataLoaderable {
 	public void setPayment(Payment payment) {
 		this.payment = payment;
 	}
+	
+    public void setFee(Fee ticketFee) {
+        this.ticketFee = ticketFee;
+    }
 
 	
 	// Static method to load a ticket by ID
-	public static Ticket load(int id) {
-		try {
-			DataLoader dataLoader = new DataLoader();
-			JSONObject tickets = dataLoader.getJSONObject("tickets");
-			
-			if (tickets.has(Integer.toString(id))) {
-				JSONObject ticket = tickets.getJSONObject(Integer.toString(id));
-				
-				Garage garage = Garage.load(ticket.getInt("garageId"));
-				Fee ticketFee = Fee.load(ticket.getJSONObject("ticketFee"));
-				LocalDateTime entryDateTime = LocalDateTime.parse(ticket.getString("entryDateTime"));
-				LocalDateTime exitDateTime = ticket.has("exitDateTime") ? LocalDateTime.parse(ticket.getString("exitDateTime")) : null;
-				Payment payment = ticket.has("payment") ? Payment.load(ticket.getJSONObject("payment")) : null;
-				
-				return new Ticket(id, garage, ticketFee, entryDateTime, exitDateTime, payment);
-					
-			} else {
-				System.err.println("Ticket with ID " + id + " not found.");
-			}
-		} catch (Exception e) {
-			System.err.println("Error loading Ticket with ID " + id + ": " + e.getMessage());
-		}
-		return null;
-	}
+    public static Ticket load(int id) {
+        try {
+        	
+            DataLoader dataLoader = new DataLoader();
+            JSONObject tickets = dataLoader.getJSONObject("tickets");
+
+
+            if (tickets.has(Integer.toString(id))) {
+                JSONObject ticketJson = tickets.getJSONObject(Integer.toString(id));
+                return load(ticketJson);
+            } else {
+                System.err.println("Ticket with ID " + id + " not found.");
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading Ticket with ID " + id + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 	
 	// Static method to load ticket from JSON object
-	public static Ticket load(JSONObject object) {
-		try {
-			int id = object.getInt("id");
-			Garage garage = Garage.load(object.getInt("garageId"));
-			Fee ticketFee = Fee.load(object.getJSONObject("ticketFee"));
-			LocalDateTime entryDateTime = LocalDateTime.parse(object.getString("entryDateTime"));
-			LocalDateTime exitDateTime = object.has("exitDateTime") ? LocalDateTime.parse(object.getString("exitDateTime")) : null;
-			Payment payment = object.has("payment") ? Payment.load(object.getJSONObject("payment")) : null;
-			
-			return new Ticket(id, garage, ticketFee, entryDateTime, exitDateTime, payment);
-		} catch (Exception e) {
-			System.err.println("Error loading Ticket from JSON: " + e.getMessage());
-		}
-		return null;
-	};
+    public static Ticket load(JSONObject object) {
+        try {
+        	
+            int id = object.getInt("id");
+            Garage garage = Garage.load(object.getInt("garageId"));
+            LocalDateTime entryDateTime = LocalDateTime.parse(object.getString("entryDateTime"));
+            LocalDateTime exitDateTime = object.has("exitDateTime") ? LocalDateTime.parse(object.getString("exitDateTime")) : null;
+            
+            Fee ticketFee = null;
+            if (object.has("ticketFee")) {
+                JSONObject feeJson = object.getJSONObject("ticketFee");
+                ticketFee = Fee.load(feeJson);
+            }
+
+            Payment payment = null;
+            if (object.has("payment")) {
+                JSONObject paymentJson = object.getJSONObject("payment");
+                payment = Payment.load(paymentJson);
+            }
+
+            return new Ticket(id, garage, ticketFee, entryDateTime, exitDateTime, payment);
+
+        } catch (Exception e) {
+            System.err.println("Error loading Ticket from JSON: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return null;
+    }
+
 	
 	// Static method to load all tickets for a specific Garage ID
     public static List<Ticket> loadTicketsForGarage(int garageId) {
+    	
         List<Ticket> tickets = new ArrayList<>();
         try {
             DataLoader dataLoader = new DataLoader();
@@ -131,6 +146,7 @@ public class Ticket extends DataLoaderable {
 	
     // Calculate fees based on  FeeType
     public void calculateFee() {
+    	
         if (entryDateTime == null || exitDateTime == null || ticketFee == null) {
             System.err.println("Cannot calculate fee: Missing data.");
             return;
@@ -139,59 +155,61 @@ public class Ticket extends DataLoaderable {
         Duration duration = Duration.between(entryDateTime, exitDateTime);
         long hours = duration.toHours();
         long days = duration.toDays();
-        
-        if (hours < 0 || days < 0) {
-            System.err.println("Error: Exit time is before entry time.");
-            return;
-        }
-        
+
         if (ticketFee.getType() == FeeType.HOURLY) {
-            System.out.println("Fee: $" + hours * ticketFee.getCost());
+            ticketFee = new Fee(FeeType.HOURLY, (int) (hours * ticketFee.getCost()));
         } else if (ticketFee.getType() == FeeType.DAILY) {
-            System.out.println("Fee: $" + days * ticketFee.getCost());
+            ticketFee = new Fee(FeeType.DAILY, (int) (days * ticketFee.getCost()));
         }
     }
+
 	
     // Save to JSON
     @Override
-	public void save() {
-		try {
-			JSONObject ticket = new JSONObject();
-			ticket.put("id", this.id);
-			ticket.put("garageId", this.garage.getId());
-			ticket.put("entryDateTime", this.entryDateTime.toString());
-			ticket.put("exitDateTime", this.exitDateTime != null ? this.exitDateTime.toString() : null);
-			
-			if (this.ticketFee != null) {
-				JSONObject fee = new JSONObject();
-				fee.put("id", this.ticketFee.getId());
-				fee.put("type", this.ticketFee.getType().name());
-				fee.put("cost", this.ticketFee.getCost());
-				ticket.put("ticketFee", fee);
-				
-			}
-			
-			if (this.payment != null) {
-				ticket.put("payment", this.payment.toJSONObject());
-			}
-			
-			DataLoader dataLoader = new DataLoader();
+    public void save() {
+        try {
+        	
+            JSONObject ticket = new JSONObject();
+            ticket.put("id", this.id);
+            ticket.put("garageId", this.garage.getId());
+            ticket.put("entryDateTime", this.entryDateTime.toString());
+            ticket.put("exitDateTime", this.exitDateTime != null ? this.exitDateTime.toString() : null);
+
+            if (this.ticketFee != null) {
+                JSONObject feeJson = new JSONObject();
+                feeJson.put("id", this.ticketFee.getId());
+                feeJson.put("type", this.ticketFee.getType().name());
+                feeJson.put("cost", this.ticketFee.getCost());
+                ticket.put("ticketFee", feeJson);
+            }
+
+            if (this.payment != null) {
+                this.payment.save();
+                ticket.put("paymentId", this.payment.getID());
+            }
+
+            DataLoader dataLoader = new DataLoader();
             dataLoader.getJSONObject("tickets").put(Integer.toString(this.id), ticket);
             dataLoader.saveData();
-		} catch (Exception e) {
-			System.err.println("Error saving Ticket with ID " + this.id + ": " + e.getMessage());
-		}
-	}
+
+        } catch (Exception e) {
+            System.err.println("Error saving Ticket with ID " + this.id + ": " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
 	
     @Override
     public String toString() {
+    	
         return "Ticket{" +
                 "id=" + id +
-                ", garage=" + garage.getName() +
+                ", garage=" + (garage != null ? garage.getName() : "None") +
                 ", ticketFee=" + (ticketFee != null ? ticketFee.toString() : "None") +
-                ", entryDateTime=" + entryDateTime +
+                ", entryDateTime=" + (entryDateTime != null ? entryDateTime : "None") +
                 ", exitDateTime=" + (exitDateTime != null ? exitDateTime : "Still parked") +
                 ", payment=" + (payment != null ? payment.toString() : "None") +
                 '}';
     }
+
 }
