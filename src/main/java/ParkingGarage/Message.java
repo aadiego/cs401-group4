@@ -8,16 +8,23 @@ public class Message implements Serializable {
     private final MessageType type;
     private final Map<String, Object> data;
 
+    
     public Message(MessageType type) {
         this.type = type;
         this.data = new HashMap<>();
+    }
+
+    
+    public Message(MessageType type, Map<String, Object> data) {
+        this.type = type;
+        this.data = data; 
     }
 
     public void setData(String key, Object value) {
         data.put(key, value);
     }
 
-    public MessageType getType() {
+    public MessageType getMessageType() {
         return type;
     }
 

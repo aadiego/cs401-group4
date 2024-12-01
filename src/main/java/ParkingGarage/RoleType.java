@@ -2,6 +2,6 @@ package ParkingGarage;
 
 public enum RoleType {
     EMPLOYEE,
-    CUSTOMER,
+    USER,
     //ADMIN,
 }

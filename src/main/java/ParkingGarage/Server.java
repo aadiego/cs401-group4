@@ -51,29 +51,36 @@ class ClientHandler implements Runnable {
 
             // while loop to receive messages from client
             while ((message = (Message) in.readObject()) != null) {
-                System.out.println("Received [" + message.getMessageType() + "] message, Status: " + message.getStatus() + ", Content: " + message.getContent());
+                System.out.println("Received [" + message.getMessageType() + "] message");
 
                 MessageType messageType = message.getMessageType();
 
                 // handle messages types
                 switch (messageType) {
                     case LOGIN:
-                        loginMessageFacade(message);
+                        handleLogin(message);
                         break;
-                    case ENTER:
-                        enterMessageFacade(message);
+                    case CREATE_USER:
+                        handleCreateUser(message);
                         break;
-                    case EXIT:
-                        exitMessageFacade(message);
+                    case ENTER_GARAGE:
+                        handleEnterGarage(message);
+                        break;
+                    case EXIT_GARAGE:
+                        handleExitGarage(message);
                         break;
                     case REPORT:
-                        reportMessageFacade(message);
+                        handleReport(message);
+                        break;
+                    case LOGOUT:
+                        handleLogout(message);
                         break;
                     case QUIT:
-                        quitMessageFacade(message);
+                        handleQuit(message);
                         return;
                     default:
-                        System.out.println("Unknown message tpe received.");
+                        System.out.println("Unknown message type received.");
+                        sendErrorResponse("Unknown message type.");
                 }
             }
         
@@ -86,8 +93,4 @@ class ClientHandler implements Runnable {
 
 }
 
-// maybe we put these as there own files?
-// or all in one message handler file?
-private void loginMessageFacade(Message message) {
 
-}
