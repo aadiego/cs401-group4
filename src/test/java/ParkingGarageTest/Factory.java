@@ -1,6 +1,10 @@
 package ParkingGarageTest;
 
 import java.lang.reflect.Field;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.HashMap;
 import com.github.javafaker.*;
 
@@ -58,6 +62,87 @@ public class Factory {
 	
 	public static Garage GarageFactory(HashMap<String, Object> garage) {
 		return merge(GarageFactory(), garage);
+	}
+	
+	public static Payment PaymentFactory() {
+		int paymentId = faker.number().numberBetween(1, 1000);
+
+		Instant instant = faker.date().between(new Date(1730444400), new Date()).toInstant();
+		LocalDateTime capturedDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+		
+		User capturedBy = UserFactory();
+		PaymentMethod paymentMethod = faker.options().option(PaymentMethod.class);
+		int value = faker.number().numberBetween(100, 500);
+		
+		Payment payment = new Payment(capturedBy, paymentMethod, value);
+		try {
+			Field paymentIdField = payment.getClass().getDeclaredField("userId");
+			paymentIdField.setAccessible(true);
+			paymentIdField.set(payment, paymentId);
+			
+			Field capturedDateTimeField = payment.getClass().getDeclaredField("capturedDateTime");
+			capturedDateTimeField.setAccessible(true);
+			capturedDateTimeField.set(payment, capturedDateTime);
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+		}
+		payment.save();
+		return payment;
+	}
+	
+	public static Payment PaymentFactory(HashMap<String, Object> payment) {
+		return merge(PaymentFactory(), payment);
+	}
+	
+	public static Ticket TicketFactory() {
+		int id = faker.number().numberBetween(1, 1000);
+		Garage garage = GarageFactory();
+		Fee ticketFee = garage.getCurrentParkingFee();
+		
+		Instant instant = faker.date().between(new Date(1730444400), new Date()).toInstant();
+		LocalDateTime entryDateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+		
+		LocalDateTime exitDateTime = null;
+		Payment payment = null;
+		Boolean hasExited = faker.random().nextInt(1, 100) <= 25; // 25% chance the ticket has an exitDateTime and payment.
+		if (hasExited) {
+			int timeDiffMins = faker.number().numberBetween(60, 180);
+			exitDateTime = entryDateTime.plusMinutes(timeDiffMins);
+			
+			int cost = ticketFee.getType() == FeeType.DAILY ? ticketFee.getCost() : ticketFee.getCost() * (int) Math.ceil(timeDiffMins / 60);
+
+			HashMap<String, Object> paymentValues = new HashMap<String, Object>();
+			paymentValues.put("capturedDateTime", exitDateTime);
+			paymentValues.put("cost", cost);
+			payment = PaymentFactory(paymentValues);
+		}
+		
+		Ticket ticket = new Ticket(garage);
+		try {
+			Field idField = ticket.getClass().getDeclaredField("id");
+			idField.setAccessible(true);
+			idField.set(ticket, id);
+			
+			Field entryDateTimeField = ticket.getClass().getDeclaredField("entryDateTime");
+			entryDateTimeField.setAccessible(true);
+			entryDateTimeField.set(ticket, entryDateTime);
+			
+			Field exitDateTimeField = ticket.getClass().getDeclaredField("exitDateTime");
+			exitDateTimeField.setAccessible(true);
+			exitDateTimeField.set(ticket, exitDateTime);
+			
+			Field paymentField = ticket.getClass().getDeclaredField("payment");
+			paymentField.setAccessible(true);
+			paymentField.set(ticket, payment);
+		} catch (Exception ex) {
+			System.out.println(ex.getMessage());
+		}
+		ticket.save();
+		return ticket;
+	}
+	
+	public static Ticket TicketFactory(HashMap<String, Object> ticket) {
+		return merge(TicketFactory(), ticket);
 	}
 	
 	public static User UserFactory() {
