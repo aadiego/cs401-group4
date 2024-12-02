@@ -1,0 +1,256 @@
+{
+  "garages": {
+    "550": {
+      "address": "3123 Schuster Cliff, West Chung, ID 50384-8119",
+      "currentParkingFeeId": 625,
+      "name": "Bernhard, Jacobson and Sauer",
+      "totalSpaces": 394,
+      "occupiedSpaces": 392,
+      "id": 550
+    },
+    "69": {
+      "address": "Apt. 570 2341 Smitham Crossroad, Beerfurt, MS 05218-2735",
+      "currentParkingFeeId": 538,
+      "name": "Mante-Stroman",
+      "totalSpaces": 558,
+      "occupiedSpaces": 259,
+      "id": 69
+    },
+    "873": {
+      "address": "8338 Schamberger Plaza, Gerholdfort, VT 15737-9582",
+      "currentParkingFeeId": 471,
+      "name": "Predovic-Schaden",
+      "totalSpaces": 583,
+      "occupiedSpaces": 196,
+      "id": 873
+    },
+    "950": {
+      "address": "Apt. 058 393 Johnston Plains, North Emmanuel, OR 78625",
+      "currentParkingFeeId": 263,
+      "name": "Keebler and Sons",
+      "totalSpaces": 315,
+      "occupiedSpaces": 80,
+      "id": 950
+    },
+    "412": {
+      "address": "6549 Jamal Road, Hellermouth, MA 69806",
+      "currentParkingFeeId": 487,
+      "name": "Schuppe Group",
+      "totalSpaces": 205,
+      "occupiedSpaces": 48,
+      "id": 412
+    },
+    "501": {
+      "address": "06072 Turner Forge, Weststad, NY 70396",
+      "currentParkingFeeId": 146,
+      "name": "Crona and Sons",
+      "totalSpaces": 274,
+      "occupiedSpaces": 262,
+      "id": 501
+    },
+    "446": {
+      "address": "Apt. 669 98117 Thiel Plaza, New Ulysses, CT 21734-5789",
+      "currentParkingFeeId": 223,
+      "name": "Kohler and Sons",
+      "totalSpaces": 724,
+      "occupiedSpaces": 308,
+      "id": 446
+    },
+    "autoIncrement": 118,
+    "801": {
+      "address": "Apt. 763 99221 Karrie Inlet, Harberchester, VA 55170",
+      "currentParkingFeeId": 549,
+      "name": "Kshlerin and Sons",
+      "totalSpaces": 327,
+      "occupiedSpaces": 25,
+      "id": 801
+    },
+    "195": {
+      "address": "07532 Agripina Isle, Port Tosha, NE 14278",
+      "currentParkingFeeId": 410,
+      "name": "Armstrong, Kovacek and Hintz",
+      "totalSpaces": 404,
+      "occupiedSpaces": 108,
+      "id": 195
+    }
+  },
+  "fees": {
+    "88": {
+      "cost": 50,
+      "type": "HOURLY"
+    },
+    "autoIncrement": 108,
+    "193": {
+      "cost": 458,
+      "type": "HOURLY"
+    },
+    "471": {
+      "cost": 458,
+      "type": "HOURLY"
+    },
+    "263": {
+      "cost": 225,
+      "type": "DAILY"
+    },
+    "530": {
+      "cost": 180,
+      "type": "DAILY"
+    },
+    "750": {
+      "cost": 377,
+      "type": "DAILY"
+    },
+    "410": {
+      "cost": 227,
+      "type": "DAILY"
+    },
+    "146": {
+      "cost": 492,
+      "type": "HOURLY"
+    },
+    "223": {
+      "cost": 365,
+      "type": "DAILY"
+    },
+    "487": {
+      "cost": 246,
+      "type": "HOURLY"
+    },
+    "795": {
+      "cost": 465,
+      "type": "DAILY"
+    },
+    "149": {
+      "cost": 433,
+      "type": "HOURLY"
+    },
+    "974": {
+      "cost": 102,
+      "type": "HOURLY"
+    },
+    "325": {
+      "cost": 342,
+      "type": "DAILY"
+    },
+    "238": {
+      "cost": 429,
+      "type": "DAILY"
+    },
+    "349": {
+      "cost": 463,
+      "type": "DAILY"
+    },
+    "625": {
+      "cost": 223,
+      "type": "DAILY"
+    },
+    "725": {
+      "cost": 428,
+      "type": "HOURLY"
+    },
+    "549": {
+      "cost": 363,
+      "type": "DAILY"
+    },
+    "538": {
+      "cost": 159,
+      "type": "HOURLY"
+    },
+    "83": {
+      "cost": 15,
+      "type": "HOURLY"
+    },
+    "87": {
+      "cost": 233,
+      "type": "HOURLY"
+    }
+  },
+  "tickets": {"autoIncrement": 36},
+  "payments": {
+    "22": {
+      "capturedById": 180,
+      "paymentMethod": "CASH",
+      "capturedDateTime": "1977-02-04T18:23:49.950",
+      "value": 180
+    },
+    "23": {
+      "capturedById": 928,
+      "paymentMethod": "CREDIT",
+      "capturedDateTime": "2017-08-28T00:21:15.256",
+      "value": 275
+    },
+    "24": {
+      "capturedById": 239,
+      "paymentMethod": "CASH",
+      "capturedDateTime": "1998-05-19T19:44:28.781",
+      "value": 357
+    },
+    "25": {
+      "capturedById": 86,
+      "paymentMethod": "CASH",
+      "capturedDateTime": "2000-10-19T23:47:09.197",
+      "value": 120
+    },
+    "autoIncrement": 31,
+    "21": {
+      "capturedById": 213,
+      "paymentMethod": "CASH",
+      "capturedDateTime": "1982-05-04T07:04:13.299",
+      "value": 431
+    }
+  },
+  "usersByUsername": {
+    "lesa.murphy": 180,
+    "tobias.kihn": 239,
+    "karie.hartmann": 739,
+    "esteban.goyette": 213,
+    "florentino.mills": 928,
+    "stephan.ondricka": 50,
+    "everett.glover": 86
+  },
+  "users": {
+    "213": {
+      "password": "fpo51bjvhouyc",
+      "role": "USER",
+      "assignedGarageId": 801,
+      "name": "Pasquale Lehner",
+      "username": "esteban.goyette"
+    },
+    "autoIncrement": 41,
+    "239": {
+      "password": "pzrk6rwr5budtw",
+      "role": "EMPLOYEE",
+      "assignedGarageId": 69,
+      "name": "Mr. Tesha Langworth",
+      "username": "tobias.kihn"
+    },
+    "180": {
+      "password": "kqncdsitye",
+      "role": "USER",
+      "assignedGarageId": 950,
+      "name": "Miss Marcel Reinger",
+      "username": "lesa.murphy"
+    },
+    "739": {
+      "password": "ez91o4qttzkf1w",
+      "role": "EMPLOYEE",
+      "assignedGarageId": 501,
+      "name": "Young Monahan",
+      "username": "karie.hartmann"
+    },
+    "86": {
+      "password": "go08kmph",
+      "role": "EMPLOYEE",
+      "assignedGarageId": 412,
+      "name": "Ms. Malcom Murray",
+      "username": "everett.glover"
+    },
+    "928": {
+      "password": "xjzjkzdxld8",
+      "role": "USER",
+      "assignedGarageId": 550,
+      "name": "Christena Wilderman",
+      "username": "florentino.mills"
+    }
+  }
+}

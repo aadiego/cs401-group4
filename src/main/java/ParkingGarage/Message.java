@@ -5,15 +5,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Message implements Serializable {
-    private final MessageType type;
+	private static final long serialVersionUID = 1L;
+	private final MessageType type;
     private final Map<String, Object> data;
 
-    
     public Message(MessageType type) {
         this.type = type;
         this.data = new HashMap<>();
     }
-
     
     public Message(MessageType type, Map<String, Object> data) {
         this.type = type;
@@ -30,6 +29,19 @@ public class Message implements Serializable {
 
     public Object getData(String key) {
         return data.get(key);
+    }
+    
+    public boolean hasKey(String key) {
+    	try {
+    		data.get(key);
+    		return true;
+    	} catch (Exception ex) {
+    		return false;
+    	}
+    }
+    
+    public void removeData(String key) {
+    	data.remove(key);
     }
 
     @Override

@@ -16,7 +16,8 @@ public class Ticket extends DataLoaderable {
 	
 	
 	// public constructor
-	public Ticket(Garage garage) {
+	public Ticket(Garage garage) throws Exception {
+		garage.decrementAvailableSpaces();
 		this.id = DataLoader.getNextId("tickets");
 		this.garage = garage;
 		this.ticketFee = garage.getCurrentParkingFee();
@@ -138,22 +139,17 @@ public class Ticket extends DataLoaderable {
     }
 	
     // Calculate fees based on  FeeType
-    public void calculateFee() {
-    	
-        if (entryDateTime == null || exitDateTime == null || ticketFee == null) {
-            System.err.println("Cannot calculate fee: Missing data.");
-            return;
-        }
-
-        Duration duration = Duration.between(entryDateTime, exitDateTime);
-        long hours = duration.toHours();
-        long days = duration.toDays();
+    public int calculateFee() {
+        Duration duration = Duration.between(entryDateTime, LocalDateTime.now());
+        long hours = (int) Math.ceil(duration.toMinutes() / 60);
+        long days = (int) Math.ceil(duration.toHours() / 24);
 
         if (ticketFee.getType() == FeeType.HOURLY) {
             ticketFee = new Fee(FeeType.HOURLY, (int) (hours * ticketFee.getCost()));
         } else if (ticketFee.getType() == FeeType.DAILY) {
             ticketFee = new Fee(FeeType.DAILY, (int) (days * ticketFee.getCost()));
         }
+        return ticketFee.getCost();
     }
 
 	
