@@ -35,7 +35,7 @@ public class Payment {
         this.value = value;
     }
 
-    public int getID() {
+    public int getId() {
         return paymentId;
     }
 
@@ -68,9 +68,9 @@ public class Payment {
         if (payment != null) {
             return new Payment(
                 paymentId,
-                LocalDateTime.parse(payment.getString("capturedBy")),
-                payment.has("capturedBy") && !payment.isNull("capturedBy")
-                    ? User.load(payment.getInt("capturedBy"))
+                LocalDateTime.parse(payment.getString("capturedDateTime")),
+                payment.has("capturedById") && !payment.isNull("capturedById")
+                    ? User.load(payment.getInt("capturedById"))
                     : null,
                 PaymentMethod.valueOf(payment.getString("paymentMethod")),
                 payment.getInt("value")
@@ -97,6 +97,8 @@ public class Payment {
     }
 
     public void save() {
+    	this.capturedBy.save();
+    	
         // save payment variables into JSON object
         JSONObject payment = new JSONObject();
         payment.put("capturedDateTime", this.capturedDateTime.toString());
@@ -104,13 +106,34 @@ public class Payment {
         payment.put("value", this.value);
 
         if (this.capturedBy != null) {
-            payment.put("capturedBy", this.capturedBy.getUserId());
+            payment.put("capturedById", this.capturedBy.getId());
         } else {
-            payment.put("capturedBy", JSONObject.NULL);
+            payment.put("capturedById", JSONObject.NULL);
         }
 
         DataLoader dataLoader = new DataLoader();
         dataLoader.getJSONObject("payments").put(Integer.toString(this.paymentId), payment);
         dataLoader.saveData();
+    }
+    
+    // Overrides for testing
+    public Payment() {}
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+
+        Payment other = (Payment) obj;
+        return this.paymentId == other.paymentId &&
+               this.capturedDateTime.equals(other.capturedDateTime) &&
+               this.capturedBy.equals(other.capturedBy) &&
+               this.paymentMethod.equals(other.paymentMethod) &&
+               this.value == other.value;
     }
 }

@@ -74,7 +74,6 @@ public class Fee extends DataLoaderable {
 	public void save() {
 		try {
 			JSONObject fee = new JSONObject();
-			fee.put("id", this.id);
 			fee.put("type", this.type.name());
 			fee.put("cost", this.cost);
 			
@@ -90,4 +89,23 @@ public class Fee extends DataLoaderable {
 	public String toString() {
 		return ("Fee{id=" + id + ", type=" + type + ", cost=" + cost + "}");
 	}
+	
+    // Overrides for testing
+    public Fee() {}
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+
+        Fee other = (Fee) obj;
+        return this.id == other.id &&
+               this.type.equals(other.type) &&
+               this.cost == other.cost;
+    }
 }

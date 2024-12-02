@@ -6,7 +6,10 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+
 import com.github.javafaker.*;
+import org.json.*;
 
 import ParkingGarage.*;
 
@@ -26,7 +29,6 @@ public class Factory {
 		} catch (Exception ex) {
 			System.out.println(ex.getMessage());
 		}
-		fee.save();
 		return fee;
 	}
 	
@@ -40,7 +42,7 @@ public class Factory {
 		String address = faker.address().fullAddress();
 		Fee currentParkingFee = FeeFactory();
 		int occupiedSpaces = faker.number().numberBetween(1, 500);
-		int totalSpaces = faker.number().numberBetween(1, 500);
+		int totalSpaces = occupiedSpaces + faker.number().numberBetween(1, 500);
 		
 		Garage garage = new Garage(name, address, totalSpaces);
 		try {
@@ -56,7 +58,6 @@ public class Factory {
 		}
 		
 		garage.setParkingFee(currentParkingFee);
-		garage.save();
 		return garage;
 	}
 	
@@ -86,7 +87,6 @@ public class Factory {
 		} catch (Exception ex) {
 			System.out.println(ex.getMessage());
 		}
-		payment.save();
 		return payment;
 	}
 	
@@ -137,12 +137,11 @@ public class Factory {
 		} catch (Exception ex) {
 			System.out.println(ex.getMessage());
 		}
-		ticket.save();
 		return ticket;
 	}
 	
 	public static Ticket TicketFactory(HashMap<String, Object> ticket) {
-		return merge(TicketFactory(), ticket);
+		return merge(TicketFactory(), ticket) ;
 	}
 	
 	public static User UserFactory() {
@@ -161,7 +160,6 @@ public class Factory {
 		} catch (Exception ex) {
 			System.out.println(ex.getMessage());
 		}
-		user.save();
 		return user;
 	}
 	
@@ -186,5 +184,29 @@ public class Factory {
 		} catch (Exception ex) {
 			return local;
 		}
+	}
+	
+	public static JSONObject asJSONObject(HashMap<String, Object> hashMap, List<String> excludeKeys) {
+		JSONObject jsonObject = new JSONObject();
+		hashMap.forEach((key, value) -> {
+			if(!excludeKeys.contains(key)) {
+				if ((value instanceof String) || (value instanceof Integer)) {
+					jsonObject.put(key, value);
+				} else if (value instanceof Fee) {
+					jsonObject.put(key.concat("Id"), ((Fee) value).getId());
+				} else if (value instanceof Garage) {
+					jsonObject.put(key.concat("Id"), ((Garage) value).getId());
+				} else if (value instanceof Payment) {
+					jsonObject.put(key.concat("Id"), ((Payment) value).getId());
+				} else if (value instanceof Ticket) {
+					jsonObject.put(key.concat("Id"), ((Ticket) value).getId());
+				} else if (value instanceof User) {
+					jsonObject.put(key.concat("Id"), ((User) value).getId());
+				} else {
+					jsonObject.put(key, value.toString());
+				}
+			}
+		});
+		return jsonObject;
 	}
 }

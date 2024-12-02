@@ -1,4 +1,4 @@
-package PGMSReportPKG;
+package ParkingGarage;
 
 public class RMSystem {
 

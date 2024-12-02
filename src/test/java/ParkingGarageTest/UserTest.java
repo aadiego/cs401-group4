@@ -1,9 +1,13 @@
 package ParkingGarageTest;
 
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.json.*;
@@ -12,6 +16,9 @@ import com.github.javafaker.*;
 import ParkingGarage.*;
 
 public class UserTest {
+	private PrintStream originalOut = System.out;
+	private ByteArrayOutputStream outContext = new ByteArrayOutputStream();
+	
 	private static Faker faker = new Faker();
 	private static int userId = faker.number().numberBetween(1, 1000);
 	private static String name = faker.name().fullName();
@@ -19,11 +26,13 @@ public class UserTest {
 	private static String password = faker.internet().password();
 	private static RoleType role = faker.options().option(RoleType.class);
 	private static Garage assignedGarage = Factory.GarageFactory();
-	private static JSONObject userJson;
-	private static User user;
+	private JSONObject userJson;
+	private User user;
 	
 	@BeforeEach
-	public void beforeAll() {
+	public void beforeEach() {
+		System.setOut(new PrintStream(outContext));
+		
 		HashMap<String, Object> userValues = new HashMap<String, Object>();
 		userValues.put("userId", userId);
 		userValues.put("name", name);
@@ -32,13 +41,22 @@ public class UserTest {
 		userValues.put("role", role);
 		userValues.put("assignedGarage", assignedGarage);
 		user = Factory.UserFactory(userValues);
+		userJson = Factory.asJSONObject(userValues, Arrays.asList("userId"));
+	}
+	
+	@AfterEach
+	public void afterEach() {
+		System.setOut(originalOut);
+		
+		DataLoader dataLoader = new DataLoader();
+		dataLoader.getJSONObject("users").remove(Integer.toString(userId));
 	}
 	
 	@Test
 	public void testGetUserId() {
-		assertNotNull(user.getUserId());
-		assertTrue(user.getUserId() >= 1);
-		assertEquals(userId, user.getUserId());
+		assertNotNull(user.getId());
+		assertTrue(user.getId() >= 1);
+		assertEquals(userId, user.getId());
 	}
 	
 	@Test
@@ -106,5 +124,25 @@ public class UserTest {
 	public void testAuthenticate_InvalidCredentails() {
 		Boolean auth = user.authenticate(faker.name().username(), faker.internet().password());
 		assertFalse(auth);
+	}
+	
+	@Test
+	public void testLoad() {
+		user.save();
+		User loadedUser = User.load(userId);
+		assertEquals(loadedUser, user);
+	}
+
+	@Test
+	public void testSave() {
+		user.save();
+		
+		DataLoader dataLoader = new DataLoader();
+		JSONObject userFromDataLoader = dataLoader.getJSONObject("users").getJSONObject(Integer.toString(userId));
+		assertEquals(userFromDataLoader.getString("name"), userJson.getString("name"));
+		assertEquals(userFromDataLoader.getString("username"), userJson.getString("username"));
+		assertEquals(userFromDataLoader.getString("password"), userJson.getString("password"));
+		assertEquals(userFromDataLoader.getString("role"), userJson.getString("role"));
+		assertEquals(userFromDataLoader.getInt("assignedGarageId"), userJson.getInt("assignedGarageId"));
 	}
 }

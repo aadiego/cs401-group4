@@ -1,4 +1,4 @@
-package PGMSReportPKG;
+package ParkingGarage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,9 +25,9 @@ public class SpaceAvailabilityReport implements ReportInterface {
     public void runReport() {
         if (garage != null) {
             System.out.println("Garage Name: " + garage.getName());
-            System.out.println("Total Spaces: " + garage.getTotalSpace());
-            System.out.println("Occupied Spaces: " + garage.getCurrentOccupancy());
-            System.out.println("Available Spaces: " + garage.getAvailSpace());
+            System.out.println("Total Spaces: " + garage.getTotalSpaces());
+            System.out.println("Occupied Spaces: " + garage.getOccupiedSpaces());
+            System.out.println("Available Spaces: " + garage.getAvailableSpaces());
         } else {
             System.out.println("Garage is null");
         }

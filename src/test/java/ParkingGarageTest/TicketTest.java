@@ -38,7 +38,7 @@ class TicketTest {
 	    assertEquals(ticket.getEntryDateTime().toString(), savedTicket.getString("entryDateTime"), "Entry date-time should match");
 
 	    // Validate payment ID in ticket
-	    assertEquals(payment.getID(), savedTicket.getInt("paymentId"), "Payment ID should match");
+	    assertEquals(payment.getId(), savedTicket.getInt("paymentId"), "Payment ID should match");
 	}
 
 

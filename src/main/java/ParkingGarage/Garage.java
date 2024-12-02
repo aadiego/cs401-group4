@@ -107,8 +107,8 @@ public class Garage extends DataLoaderable {
 				int occupiedSpaces = garageJson.getInt("occupiedSpaces");
 				
 				Fee parkingFee = null;
-				if (garageJson.has("currentParkingFee")) {
-					parkingFee = Fee.load(garageJson.getJSONObject("currentParkingFee"));
+				if (garageJson.has("currentParkingFeeId")) {
+					parkingFee = Fee.load(garageJson.getInt("currentParkingFeeId"));
 				}
 				
 				Garage garage = new Garage(id, name, address, parkingFee, totalSpaces);
@@ -148,6 +148,8 @@ public class Garage extends DataLoaderable {
     // Save to JSON
     @Override
     public void save() {
+    	this.currentParkingFee.save();
+    	
     	try {
     		JSONObject garage = new JSONObject();
     		garage.put("id", this.id);
@@ -157,11 +159,7 @@ public class Garage extends DataLoaderable {
     		garage.put("occupiedSpaces", this.occupiedSpaces);
     		
     		if (this.currentParkingFee != null) {
-    			JSONObject parkingFee = new JSONObject();
-    			parkingFee.put("id", this.currentParkingFee.getId());
-    			parkingFee.put("type", this.currentParkingFee.getType().name());
-    			parkingFee.put("cost", this.currentParkingFee.getCost());
-    			garage.put("currentParkingFee", parkingFee);
+    			garage.put("currentParkingFeeId", this.currentParkingFee.getId());
     		}
     		
     		DataLoader dataLoader = new DataLoader();
@@ -183,5 +181,27 @@ public class Garage extends DataLoaderable {
                 ", occupiedSpaces=" + occupiedSpaces +
                 ", currentParkingFee=" + (currentParkingFee != null ? currentParkingFee.toString() : "None") +
                 '}';
+    }
+    
+    // Overrides for testing
+    public Garage() {}
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+
+        Garage other = (Garage) obj;
+        return this.id == other.id &&
+               this.name.equals(other.name) &&
+               this.address.equals(other.address) &&
+               this.currentParkingFee.equals(other.currentParkingFee) &&
+               this.occupiedSpaces == other.occupiedSpaces &&
+               this.totalSpaces == other.totalSpaces;
     }
 }

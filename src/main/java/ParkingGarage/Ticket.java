@@ -19,6 +19,7 @@ public class Ticket extends DataLoaderable {
 	public Ticket(Garage garage) {
 		this.id = DataLoader.getNextId("tickets");
 		this.garage = garage;
+		this.ticketFee = garage.getCurrentParkingFee();
 		this.entryDateTime = LocalDateTime.now();
 	}
 	
@@ -72,57 +73,47 @@ public class Ticket extends DataLoaderable {
 
 	
 	// Static method to load a ticket by ID
-    public static Ticket load(int id) {
-        try {
-        	
-            DataLoader dataLoader = new DataLoader();
-            JSONObject tickets = dataLoader.getJSONObject("tickets");
-
-
-            if (tickets.has(Integer.toString(id))) {
-                JSONObject ticketJson = tickets.getJSONObject(Integer.toString(id));
-                return load(ticketJson);
-            } else {
-                System.err.println("Ticket with ID " + id + " not found.");
-            }
-        } catch (Exception e) {
-            System.err.println("Error loading Ticket with ID " + id + ": " + e.getMessage());
-            e.printStackTrace();
-        }
-        return null;
-    }
-
+	public static Ticket load(int id) {
+		try {
+			DataLoader dataLoader = new DataLoader();
+			JSONObject tickets = dataLoader.getJSONObject("tickets");
+			
+			if (tickets.has(Integer.toString(id))) {
+				JSONObject ticket = tickets.getJSONObject(Integer.toString(id));
+				
+				Garage garage = Garage.load(ticket.getInt("garageId"));
+				Fee ticketFee = Fee.load(ticket.getInt("ticketFeeId"));
+				LocalDateTime entryDateTime = LocalDateTime.parse(ticket.getString("entryDateTime"));
+				LocalDateTime exitDateTime = ticket.has("exitDateTime") ? LocalDateTime.parse(ticket.getString("exitDateTime")) : null;
+				Payment payment = ticket.has("paymentId") ? Payment.load(ticket.getInt("paymentId")) : null;
+				
+				return new Ticket(id, garage, ticketFee, entryDateTime, exitDateTime, payment);
+					
+			} else {
+				System.err.println("Ticket with ID " + id + " not found.");
+			}
+		} catch (Exception e) {
+			System.err.println("Error loading Ticket with ID " + id + ": " + e.getMessage());
+		}
+		return null;
+	}
 	
 	// Static method to load ticket from JSON object
-    public static Ticket load(JSONObject object) {
-        try {
-        	
-            int id = object.getInt("id");
-            Garage garage = Garage.load(object.getInt("garageId"));
-            LocalDateTime entryDateTime = LocalDateTime.parse(object.getString("entryDateTime"));
-            LocalDateTime exitDateTime = object.has("exitDateTime") ? LocalDateTime.parse(object.getString("exitDateTime")) : null;
-            
-            Fee ticketFee = null;
-            if (object.has("ticketFee")) {
-                JSONObject feeJson = object.getJSONObject("ticketFee");
-                ticketFee = Fee.load(feeJson);
-            }
-
-            Payment payment = null;
-            if (object.has("payment")) {
-                JSONObject paymentJson = object.getJSONObject("payment");
-                payment = Payment.load(paymentJson);
-            }
-
-            return new Ticket(id, garage, ticketFee, entryDateTime, exitDateTime, payment);
-
-        } catch (Exception e) {
-            System.err.println("Error loading Ticket from JSON: " + e.getMessage());
-            e.printStackTrace();
-        }
-        return null;
-    }
-
+	public static Ticket load(JSONObject object) {
+		try {
+			int id = object.getInt("id");
+			Garage garage = Garage.load(object.getInt("garageId"));
+			Fee ticketFee = Fee.load(object.getInt("ticketFeeId"));
+			LocalDateTime entryDateTime = LocalDateTime.parse(object.getString("entryDateTime"));
+			LocalDateTime exitDateTime = object.has("exitDateTime") ? LocalDateTime.parse(object.getString("exitDateTime")) : null;
+			Payment payment = object.has("payment") ? Payment.load(object.getJSONObject("payment")) : null;
+			
+			return new Ticket(id, garage, ticketFee, entryDateTime, exitDateTime, payment);
+		} catch (Exception e) {
+			System.err.println("Error loading Ticket from JSON: " + e.getMessage());
+		}
+		return null;
+	};
 	
 	// Static method to load all tickets for a specific Garage ID
     public static List<Ticket> loadTicketsForGarage(int garageId) {
@@ -133,10 +124,12 @@ public class Ticket extends DataLoaderable {
             JSONObject ticketsJson = dataLoader.getJSONObject("tickets");
 
             for (String key : ticketsJson.keySet()) {
-                JSONObject ticketJson = ticketsJson.getJSONObject(key);
-                if (ticketJson.getInt("garageId") == garageId) {
-                    tickets.add(Ticket.load(ticketJson));
-                }
+            	if (key != "autoIncrement" ) {
+	                JSONObject ticketJson = ticketsJson.getJSONObject(key);
+	                if (ticketJson.getInt("garageId") == garageId) {
+	                    tickets.add(Ticket.load(ticketJson));
+	                }
+            	}
             }
         } catch (Exception e) {
             System.err.println("Error loading tickets for Garage ID " + garageId + ": " + e.getMessage());
@@ -166,29 +159,27 @@ public class Ticket extends DataLoaderable {
 	
     // Save to JSON
     @Override
-    public void save() {
-        try {
-        	
-            JSONObject ticket = new JSONObject();
-            ticket.put("id", this.id);
-            ticket.put("garageId", this.garage.getId());
-            ticket.put("entryDateTime", this.entryDateTime.toString());
-            ticket.put("exitDateTime", this.exitDateTime != null ? this.exitDateTime.toString() : null);
-
-            if (this.ticketFee != null) {
-                JSONObject feeJson = new JSONObject();
-                feeJson.put("id", this.ticketFee.getId());
-                feeJson.put("type", this.ticketFee.getType().name());
-                feeJson.put("cost", this.ticketFee.getCost());
-                ticket.put("ticketFee", feeJson);
-            }
-
-            if (this.payment != null) {
-                this.payment.save();
-                ticket.put("paymentId", this.payment.getID());
-            }
-
-            DataLoader dataLoader = new DataLoader();
+	public void save() {
+    	this.garage.save();
+    	this.ticketFee.save();
+    	
+    	if (this.payment != null) {
+    		this.payment.save();
+    	}
+    	
+		try {
+			JSONObject ticket = new JSONObject();
+			ticket.put("id", this.id);
+			ticket.put("garageId", this.garage.getId());
+			ticket.put("entryDateTime", this.entryDateTime.toString());
+			ticket.put("exitDateTime", this.exitDateTime != null ? this.exitDateTime.toString() : null);
+			ticket.put("ticketFeeId", this.ticketFee.getId());
+			
+			if (this.payment != null) {
+				ticket.put("paymentId", this.payment.getId());
+			}
+			
+			DataLoader dataLoader = new DataLoader();
             dataLoader.getJSONObject("tickets").put(Integer.toString(this.id), ticket);
             dataLoader.saveData();
 
@@ -211,5 +202,33 @@ public class Ticket extends DataLoaderable {
                 ", payment=" + (payment != null ? payment.toString() : "None") +
                 '}';
     }
+    
+    // Overrides for testing
+    public Ticket() {}
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
 
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        
+        Ticket other = (Ticket) obj;
+        Boolean optionalValid = true;
+        if (this.exitDateTime != null) {
+        	optionalValid = this.exitDateTime.equals(other.exitDateTime);
+        }
+        if (this.payment != null) {
+        	optionalValid = optionalValid && this.payment.equals(other.payment);
+        }
+
+        return this.id == other.id &&
+               this.garage.equals(other.garage) &&
+               this.ticketFee.equals(other.ticketFee) &&
+               this.entryDateTime.equals(other.entryDateTime) &&
+               optionalValid;
+    }
 }

@@ -10,7 +10,7 @@ public class User {
     private RoleType role;
     private Garage assignedGarage;
 
-    // constructor
+    // constructor    
     public User(String name, String username, String password, RoleType role, Garage assignedGarage) {
         this.userId = DataLoader.getNextId("users");
         this.name = name;
@@ -30,7 +30,7 @@ public class User {
     }
 
     // Getter and Setter
-    public int getUserId() {
+    public int getId() {
         return userId;
     }
 
@@ -68,7 +68,7 @@ public class User {
     }
 
     // load method
-    public static User load(int userId) {
+    public static User load(int userId) {    	
     	DataLoader dataLoader = new DataLoader();
     	JSONObject users = dataLoader.getJSONObject("users");
     	
@@ -82,7 +82,7 @@ public class User {
     				user.getString("username"),
     				user.getString("password"),
     				RoleType.valueOf(user.getString("role")),
-    				Garage.load(user.getJSONObject("assignedGarageId")));
+    				Garage.load(user.getInt("assignedGarageId")));
     	} else {
     		return null;
     	}
@@ -95,13 +95,15 @@ public class User {
         String username = object.getString("username");
         String password = object.getString("password");
         RoleType role = RoleType.valueOf(object.getString("role"));
-        Garage assignedGarage = Garage.load(object.getJSONObject("assignedGarageId"));
-    
+        Garage assignedGarage = Garage.load(object.getJSONObject("assignedGarage"));
+   
         return new User(userId, name, username, password, role, assignedGarage);
     }
 
     // save method
     public void save() {
+    	this.assignedGarage.save();
+    	
     	JSONObject user = new JSONObject();
     	user.put("name", this.name);
     	user.put("username", this.username);
@@ -114,5 +116,25 @@ public class User {
         dataLoader.saveData();
     }
 
+    // Overrides for testing
+    public User() {}
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
 
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+
+        User other = (User) obj;
+        return this.userId == other.userId &&
+               this.name.equals(other.name) &&
+               this.username.equals(other.username) &&
+               this.password.equals(other.password) &&
+               this.role.equals(other.role) &&
+               this.assignedGarage.equals(other.assignedGarage);
+    }
 }

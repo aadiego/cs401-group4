@@ -1,4 +1,4 @@
-package PGMSReportPKG;
+package ParkingGarage;
 
 import java.util.List;
 
