@@ -7,8 +7,8 @@ public class ClientRunner {
 		Map<String, Object> parsedArgs = parseArgs(args);
 		String host = (String) parsedArgs.get("host");
 		int port = (int) parsedArgs.get("port");
-		
-		switch((String) parsedArgs.get("guimode")) {
+
+		switch ((String) parsedArgs.get("guimode")) {
 			case "customer":
 				CustomerGUI.run(host, port);
 				break;
@@ -27,7 +27,7 @@ public class ClientRunner {
 		// Default values
 		parsedArgs.put("host", "localhost");
 		parsedArgs.put("port", 12345);
-		parsedArgs.put("guimode", "employee");
+		parsedArgs.put("guimode", "customer");
 
 		for (int i = 0; i < args.length; i++) {
 			switch (args[i]) {
@@ -46,16 +46,18 @@ public class ClientRunner {
 					String guimode = args[i + 1];
 					if (guimode != "customer" || guimode != "employee" || guimode != "cmdline") {
 						System.out.println("Invalid argument value: " + guimode);
-						System.out.println("Usage: java ClientRunner [-h|--host <hostname>] [-p|--port <port>] [-g|--guimode customer|employee|cmdline]");
+						System.out.println(
+								"Usage: java ClientRunner [-h|--host <hostname>] [-p|--port <port>] [-g|--guimode customer|employee|cmdline]");
 						System.exit(1);
 					}
-					
+
 					parsedArgs.put("guimode", args[i + 1]);
 					i++;
 					break;
 				default:
 					System.out.println("Invalid argument: " + args[i]);
-					System.out.println("Usage: java ClientRunner [-h|--host <hostname>] [-p|--port <port>] [-g|--guimode customer|employee|cmdline]");
+					System.out.println(
+							"Usage: java ClientRunner [-h|--host <hostname>] [-p|--port <port>] [-g|--guimode customer|employee|cmdline]");
 					System.exit(1);
 			}
 		}
