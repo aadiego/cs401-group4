@@ -136,7 +136,7 @@ public class GarageTestFactoryGenerated {
 	}
 	
 	@Test
-	public void testDecrementAvailableSpaces_NonFullGarage() {
+	public void testDecrementAvailableSpaces_NonFullGarage() throws Exception {
 		int availableSpaces = garage.getAvailableSpaces();
 		garage.decrementAvailableSpaces();
 		assertEquals(availableSpaces - 1, garage.getAvailableSpaces());
@@ -144,17 +144,19 @@ public class GarageTestFactoryGenerated {
 	
 	@Test
 	public void testDecrementAvailableSpaces_FullGarage() {
-		int availableSpaces = garage.getAvailableSpaces();
-		garage.setTotalSpaces(availableSpaces);
-		garage.decrementAvailableSpaces();
-		
-		String exceptionMessage = "Garage is full" + System.lineSeparator();
-		assertEquals(exceptionMessage, outContext.toString());
-		outContext.reset();
+		try {
+			int availableSpaces = garage.getAvailableSpaces();
+			garage.setTotalSpaces(availableSpaces);
+			garage.decrementAvailableSpaces();
+			fail();
+		} catch (Exception ex) {
+			String exceptionMessage = "Garage is full";
+			assertEquals(exceptionMessage, ex.getMessage());
+		}
 	}
 	
 	@Test
-	public void testIncrementAvailableSpaces_NonEmptyGarage() {
+	public void testIncrementAvailableSpaces_NonEmptyGarage() throws Exception {
 		int availableSpaces = garage.getAvailableSpaces();
 		garage.incrementAvailableSpaces();
 		assertEquals(availableSpaces + 1, garage.getAvailableSpaces());
@@ -162,14 +164,16 @@ public class GarageTestFactoryGenerated {
 	
 	@Test
 	public void testIncrementAvailableSpaces_EmptyGarage() throws IllegalAccessException, NoSuchFieldException {
-		Field occupiedSpacesField = garage.getClass().getDeclaredField("occupiedSpaces");
-		occupiedSpacesField.setAccessible(true);
-		occupiedSpacesField.set(garage, 0);
-		garage.incrementAvailableSpaces();
-		
-		String exceptionMessage = "No occupied spaces to free up" + System.lineSeparator();
-		assertEquals(exceptionMessage, outContext.toString());
-		outContext.reset();
+		try {
+			Field occupiedSpacesField = garage.getClass().getDeclaredField("occupiedSpaces");
+			occupiedSpacesField.setAccessible(true);
+			occupiedSpacesField.set(garage, 0);
+			garage.incrementAvailableSpaces();
+			fail();
+		} catch (Exception ex) {
+			String exceptionMessage = "No occupied spaces to free up";
+			assertEquals(exceptionMessage, ex.getMessage());
+		}
 	}
 	
 	@Test

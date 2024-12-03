@@ -29,7 +29,7 @@ public class RevenueReport implements ReportInterface {
     }
 
     @Override
-    public void runReport() {
+    public void runReport(Message message) {
         System.out.println("Generating Revenue Report...");
         System.out.println("Garage ID: " + garageId);
         System.out.println("Start Date: " + startDate);

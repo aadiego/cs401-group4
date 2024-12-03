@@ -35,6 +35,7 @@ class ClientHandler implements Runnable {
     private Socket socket; // socket to communicate with client
     private ObjectOutputStream out; // output stream to send messages to client
     private ObjectInputStream in; // input stream to receive messages from client
+    private ClientHandlerFacade facade;
     
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -46,6 +47,7 @@ class ClientHandler implements Runnable {
             // initialize streams
             out = new ObjectOutputStream(socket.getOutputStream());
             in = new ObjectInputStream(socket.getInputStream());
+            facade = new ClientHandlerFacade(socket, in, out);
 
             Message message;
 
@@ -57,30 +59,51 @@ class ClientHandler implements Runnable {
 
                 // handle messages types
                 switch (messageType) {
-                    case LOGIN:
-                        handleLogin(message);
-                        break;
-                    case CREATE_USER:
-                        handleCreateUser(message);
-                        break;
+	                case CHECK_TICKET:
+	                	facade.handleCheckTicket(message);
+	                	break;
+	                case CREATE_USER:
+	                	facade.handleCreateUser(message);
+	                    break;
+                    case GET_GARAGES:
+                    	facade.handleGetGarages(message);
+                    	break;
                     case ENTER_GARAGE:
-                        handleEnterGarage(message);
+                    	facade.handleEnterGarage(message);
                         break;
                     case EXIT_GARAGE:
-                        handleExitGarage(message);
+                    	facade.handleExitGarage(message);
                         break;
-                    case REPORT:
-                        handleReport(message);
+                    case LOGIN:
+                    	facade.handleLogin(message);
                         break;
                     case LOGOUT:
-                        handleLogout(message);
+                    	facade.handleLogout(message);
                         break;
+                    case PAYMENT:
+                    	facade.handlePayment(message);
+                    	break;
+                    case REPORT:
+                    	facade.handleReport(message);
+                        break;
+	                case SYSTEM:
+	                	facade.handleSystem(message);
+	                	break;
                     case QUIT:
-                        handleQuit(message);
+                    	facade.handleQuit(message);
                         return;
+                    case UPDATE_FEE:
+                    	facade.handleUpdateFee(message);
+                    	break;
+                    case UPDATE_GARAGE_CAPACITY:
+                    	facade.handleUpdateGarageCapacity(message);
+                    	break;
                     default:
                         System.out.println("Unknown message type received.");
-                        sendErrorResponse("Unknown message type.");
+                        message.setData("__status__", MessageStatus.FAILURE);
+                        message.setData("message", "Unknown message type.");
+                        out.writeObject(message);
+                        out.flush();
                 }
             }
         

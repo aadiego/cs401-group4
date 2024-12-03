@@ -7,8 +7,6 @@ public interface ReportInterface {
 	
 	public <T> void setFilters(String name, T value);
 	
-	public void runReport();
-	
-	
+	public void runReport(Message message);
 
 }

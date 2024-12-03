@@ -115,15 +115,20 @@ public class UserTest {
 	}
 	
 	@Test
-	public void testAuthenticate_ValidCredentials() {
-		Boolean auth = user.authenticate(username, password);
-		assertTrue(auth);
+	public void testAuthenticate_ValidCredentials() throws Exception {
+		user.save();
+		User authUser = User.authenticate(username, password);
+		assertEquals(authUser, user);
 	}
 	
 	@Test
 	public void testAuthenticate_InvalidCredentails() {
-		Boolean auth = user.authenticate(faker.name().username(), faker.internet().password());
-		assertFalse(auth);
+		try {
+			User.authenticate(faker.name().username(), faker.internet().password());
+			fail();
+		} catch (Exception ex) {
+			return;
+		}
 	}
 	
 	@Test

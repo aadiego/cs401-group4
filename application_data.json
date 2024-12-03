@@ -1,0 +1,43 @@
+{
+  "garages": {
+    "1": {
+      "address": "123 Main Street, Cityville, CA 99999-9999",
+      "currentParkingFeeId": 1,
+      "name": "Garage A",
+      "totalSpaces": 275,
+      "occupiedSpaces": 0,
+      "id": 1
+    },
+    "2": {
+      "address": "456 West Street, Cityville, CA 99999-9999",
+      "currentParkingFeeId": 1,
+      "name": "Garage B",
+      "totalSpaces": 175,
+      "occupiedSpaces": 1,
+      "id": 2
+    },
+    "autoIncrement": 2
+  },
+  "fees": {
+    "1": {
+      "cost": 150,
+      "type": "HOURLY"
+    },
+	"2": {
+	  "cost": 500,
+	  "type": "DAILY"
+	},
+    "autoIncrement": 2
+  },
+  "usersByUsername": {"admin": 1},
+  "users": {
+    "1": {
+      "password": "password",
+      "role": "ADMIN",
+      "assignedGarageId": 1,
+      "name": "Administrator",
+      "username": "admin"
+    },
+    "autoIncrement": 1
+  }
+}

@@ -74,20 +74,20 @@ public class Garage extends DataLoaderable {
 	}
 	
 	// Increment the occupiedSpaces by 1.
-	public void decrementAvailableSpaces() {
+	public void decrementAvailableSpaces() throws Exception {
 		if (occupiedSpaces < totalSpaces) {
 			occupiedSpaces++;
 		} else {
-			System.out.println("Garage is full");
+			throw new Exception("Garage is full");
 		}
 	}
 	
 	// Decrement the occupiedSpaces by 1
-	public void incrementAvailableSpaces() {
+	public void incrementAvailableSpaces() throws Exception {
 		if (occupiedSpaces > 0) {
 			occupiedSpaces--;
 		} else {
-			System.out.println("No occupied spaces to free up");
+			throw new Exception("No occupied spaces to free up");
 		}
 	}
 	

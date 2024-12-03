@@ -22,14 +22,16 @@ public class SpaceAvailabilityReport implements ReportInterface {
     }
 
     @Override
-    public void runReport() {
+    public void runReport(Message message) {
         if (garage != null) {
-            System.out.println("Garage Name: " + garage.getName());
-            System.out.println("Total Spaces: " + garage.getTotalSpaces());
-            System.out.println("Occupied Spaces: " + garage.getOccupiedSpaces());
-            System.out.println("Available Spaces: " + garage.getAvailableSpaces());
+        	message.setData("__status__", MessageStatus.SUCCESS);
+        	message.setData("garageName", garage.getName());
+        	message.setData("totalSpaces", garage.getTotalSpaces());
+        	message.setData("occupiedSpaces", garage.getOccupiedSpaces());
+        	message.setData("availableSpaces", garage.getAvailableSpaces());
         } else {
-            System.out.println("Garage is null");
+        	message.setData("__status__", MessageStatus.FAILURE);
+            message.setData("message", "Invalid garage ID");
         }
     }		
 }

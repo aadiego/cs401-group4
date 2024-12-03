@@ -11,7 +11,11 @@ public class User {
     private Garage assignedGarage;
 
     // constructor    
-    public User(String name, String username, String password, RoleType role, Garage assignedGarage) {
+    public User(String name, String username, String password, RoleType role, Garage assignedGarage) throws Exception {
+    	if (getUserIdByUsername(username) != -1) {
+    		throw new Exception("Username already exists");
+    	}
+    	
         this.userId = DataLoader.getNextId("users");
         this.name = name;
         this.username = username;
@@ -63,8 +67,28 @@ public class User {
     }
 
     // authentication
-    public boolean authenticate(String username, String password) {
-        return this.username.equals(username) && this.password.equals(password);
+    public static User authenticate(String username, String password) throws Exception {
+    	int userId = getUserIdByUsername(username);
+
+    	if (userId != -1) {
+	    	User foundUser = load(userId);
+	    	if (foundUser.password.equals(password)) {
+	    		return foundUser;
+	    	} else {
+	    		throw new Exception ("Invalid login.");
+	    	}
+    	} else {
+    		throw new Exception("User not found");
+    	}
+    }
+    
+    private static int getUserIdByUsername(String username) {
+    	DataLoader dataLoader = new DataLoader();
+       	JSONObject usersByUsername = dataLoader.getJSONObject("usersByUsername");
+    	int userId = usersByUsername.has(username)
+    			? usersByUsername.getInt(username)
+    			: -1;
+    	return userId;
     }
 
     // load method
@@ -113,6 +137,7 @@ public class User {
         
         DataLoader dataLoader = new DataLoader();
         dataLoader.getJSONObject("users").put(Integer.toString(this.userId), user);
+        dataLoader.getJSONObject("usersByUsername").put(username, this.userId);
         dataLoader.saveData();
     }
 

@@ -1,9 +1,4 @@
-package client.gui.employee;
-
-import client.network.ParkingClient;
-import common.enums.MessageType;
-import common.model.Message;
-import util.Constants;
+package ParkingGarage;
 
 import javax.swing.*;
 import java.awt.*;
@@ -11,6 +6,8 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,7 +15,7 @@ public class EmployeeGUI extends JFrame {
     private static final Logger LOGGER = Logger.getLogger(EmployeeGUI.class.getName());
     private static final long serialVersionUID = 1L;
     
-    private final ParkingClient client;
+    private final GUIClientHandler client;
     private JTextArea outputArea;
     private JTextField usernameField;
     private JPasswordField passwordField;
@@ -32,9 +29,10 @@ public class EmployeeGUI extends JFrame {
     private JLabel authenticationStatus;
     private Timer connectionCheckTimer;
     private boolean isLoggedIn;
+    private int assignedGarageId;
 
-    public EmployeeGUI() {
-        client = new ParkingClient();
+    public EmployeeGUI(String host, int port) {
+        client = new GUIClientHandler(host, port);
         isLoggedIn = false;
         initializeGUI();
         startConnectionCheck();
@@ -152,11 +150,11 @@ public class EmployeeGUI extends JFrame {
         JPanel buttonPanel = new JPanel(new GridLayout(2, 1, 10, 10));
 
         viewReportButton = new JButton("View Reports");
-        viewReportButton.setIcon(createImageIcon("/icons/report.png"));
+        // viewReportButton.setIcon(createImageIcon("/icons/report.png"));
         viewReportButton.addActionListener(e -> viewReport());
 
         manageGarageButton = new JButton("Manage Garage");
-        manageGarageButton.setIcon(createImageIcon("/icons/garage.png"));
+        // manageGarageButton.setIcon(createImageIcon("/icons/garage.png"));
         manageGarageButton.addActionListener(e -> manageGarage());
 
         buttonPanel.add(viewReportButton);
@@ -251,6 +249,7 @@ public class EmployeeGUI extends JFrame {
             
             if (client.login(username, password)) {
                 isLoggedIn = true;
+                this.assignedGarageId = client.getAssignedGarageId();
                 outputArea.append("Login successful!\n");
                 
                 loginPanel.setVisible(false);
@@ -300,31 +299,35 @@ public class EmployeeGUI extends JFrame {
             checkConnection();
             
             // Format dates properly
-            LocalDateTime start = LocalDateTime.now().minusDays(30);
-            LocalDateTime end = LocalDateTime.now();
-            String dateRange = String.format("%s,%s",  // Use comma instead of colon
-                start.format(Constants.DATE_TIME_FORMATTER),
-                end.format(Constants.DATE_TIME_FORMATTER));
+//            LocalDateTime start = LocalDateTime.now().minusDays(30);
+//            LocalDateTime end = LocalDateTime.now();
+//            String dateRange = String.format("%s,%s",  // Use comma instead of colon
+//                start.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+//                end.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                         
-            Message response = client.sendMessage(
-                new Message(MessageType.REPORT, "SPACE:" + dateRange)
-            );
+            Message request = new Message(MessageType.REPORT);
+            request.setData("garageId", assignedGarageId);
             
-            if (response.getType() == MessageType.SUCCESS) {
+            Message response = client.sendMessage(request);
+            
+            if (response.getData("__status__") == MessageStatus.SUCCESS) {
                 outputArea.append("\nReport Generated:\n");
                 outputArea.append("----------------------------------------\n");
-                outputArea.append(response.getData());
+                outputArea.append("Garage Name: " + (String)response.getData("garageName") + "\n");
+                outputArea.append("Total Spaces: " + (int)response.getData("totalSpaces") + "\n");
+                outputArea.append("Occupied Spaces: " + (int)response.getData("occupiedSpaces") + "\n");
+                outputArea.append("Available Spaces: " + (int)response.getData("availableSpaces") + "\n");
                 outputArea.append("----------------------------------------\n");
                 
                 // Save report option
-                int option = JOptionPane.showConfirmDialog(this,
-                    "Would you like to save this report?",
-                    "Save Report",
-                    JOptionPane.YES_NO_OPTION);
-                    
-                if (option == JOptionPane.YES_OPTION) {
-                    saveReport(response.getData());
-                }
+//                int option = JOptionPane.showConfirmDialog(this,
+//                    "Would you like to save this report?",
+//                    "Save Report",
+//                    JOptionPane.YES_NO_OPTION);
+//                    
+//                if (option == JOptionPane.YES_OPTION) {
+//                    saveReport(response.getData());
+//                }
             } else {
                 handleErrorResponse("report generation", response.getData());
             }
@@ -333,40 +336,40 @@ public class EmployeeGUI extends JFrame {
         }
     }
 
-    private void saveReport(String reportData) {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setDialogTitle("Save Report");
-        fileChooser.setSelectedFile(new java.io.File("report.txt"));
-        
-        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-            try {
-                java.io.File file = fileChooser.getSelectedFile();
-                java.nio.file.Files.writeString(file.toPath(), reportData);
-                JOptionPane.showMessageDialog(this,
-                    "Report saved successfully!",
-                    "Save Successful",
-                    JOptionPane.INFORMATION_MESSAGE);
-            } catch (Exception e) {
-                handleError("saving report", e);
-            }
-        }
-    }
+//    private void saveReport(String reportData) {
+//        JFileChooser fileChooser = new JFileChooser();
+//        fileChooser.setDialogTitle("Save Report");
+//        fileChooser.setSelectedFile(new java.io.File("report.txt"));
+//        
+//        if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+//            try {
+//                java.io.File file = fileChooser.getSelectedFile();
+//                java.nio.file.Files.writeString(file.toPath(), reportData);
+//                JOptionPane.showMessageDialog(this,
+//                    "Report saved successfully!",
+//                    "Save Successful",
+//                    JOptionPane.INFORMATION_MESSAGE);
+//            } catch (Exception e) {
+//                handleError("saving report", e);
+//            }
+//        }
+//    }
 
     private void manageGarage() {
         try {
             checkConnection();
             outputArea.append("Retrieving garage status...\n");
             
-            Message response = client.sendMessage(
-                new Message(MessageType.TARGET, "GARAGE:MAIN")
-            );
+            Message request = new Message(MessageType.GET_GARAGES);
+            request.setData("garageId", assignedGarageId);
             
-            if (response.getType() == MessageType.SUCCESS) {
-                String[] garageInfo = response.getData().split("\n");
+            Message response = client.sendMessage(request);            
+            if (response.getData("__status__") == MessageStatus.SUCCESS) {
+                Map<String, Object> garageInfo = response.getData();
                 outputArea.append("\nGarage Status:\n");
                 outputArea.append("----------------------------------------\n");
-                for (String info : garageInfo) {
-                    outputArea.append(info + "\n");
+                for (Map.Entry<String, Object> entry : garageInfo.entrySet()) {
+                    outputArea.append(entry.getKey() + ": " + entry.getValue() + "\n");
                 }
                 outputArea.append("----------------------------------------\n");
                 
@@ -379,7 +382,7 @@ public class EmployeeGUI extends JFrame {
         }
     }
 
-    private void showGarageManagementDialog(String[] garageInfo) {
+    private void showGarageManagementDialog(Map<String, Object> garageInfo) {
         JDialog dialog = new JDialog(this, "Garage Management", true);
         dialog.setLayout(new BorderLayout(10, 10));
         dialog.setSize(500, 400);
@@ -389,7 +392,7 @@ public class EmployeeGUI extends JFrame {
         JTabbedPane tabbedPane = new JTabbedPane();
         
         // Maintenance tab
-        tabbedPane.addTab("Maintenance", createMaintenancePanel());
+        // tabbedPane.addTab("Maintenance", createMaintenancePanel());
         
         // Capacity tab
         tabbedPane.addTab("Capacity", createCapacityPanel());
@@ -410,40 +413,40 @@ public class EmployeeGUI extends JFrame {
         dialog.setVisible(true);
     }
 
-    private JPanel createMaintenancePanel() {
-        JPanel panel = new JPanel(new BorderLayout(10, 10));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        
-        JTextArea reasonArea = new JTextArea(5, 30);
-        reasonArea.setLineWrap(true);
-        reasonArea.setWrapStyleWord(true);
-        
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
-        JButton enableButton = new JButton("Enable Maintenance");
-        JButton disableButton = new JButton("Disable Maintenance");
-        
-        enableButton.addActionListener(e -> {
-            String reason = reasonArea.getText().trim();
-            if (reason.isEmpty()) {
-                JOptionPane.showMessageDialog(this,
-                    "Please provide a maintenance reason",
-                    "Input Required",
-                    JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            handleMaintenanceMode(true, reason);});
-        
-            disableButton.addActionListener(e -> handleMaintenanceMode(false, null));
-            
-            buttonPanel.add(enableButton);
-            buttonPanel.add(disableButton);
-            
-            panel.add(new JLabel("Maintenance Reason:"), BorderLayout.NORTH);
-            panel.add(new JScrollPane(reasonArea), BorderLayout.CENTER);
-            panel.add(buttonPanel, BorderLayout.SOUTH);
-            
-            return panel;
-        }
+//    private JPanel createMaintenancePanel() {
+//        JPanel panel = new JPanel(new BorderLayout(10, 10));
+//        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+//        
+//        JTextArea reasonArea = new JTextArea(5, 30);
+//        reasonArea.setLineWrap(true);
+//        reasonArea.setWrapStyleWord(true);
+//        
+//        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+//        JButton enableButton = new JButton("Enable Maintenance");
+//        JButton disableButton = new JButton("Disable Maintenance");
+//        
+//        enableButton.addActionListener(e -> {
+//            String reason = reasonArea.getText().trim();
+//            if (reason.isEmpty()) {
+//                JOptionPane.showMessageDialog(this,
+//                    "Please provide a maintenance reason",
+//                    "Input Required",
+//                    JOptionPane.WARNING_MESSAGE);
+//                return;
+//            }
+//            handleMaintenanceMode(true, reason);});
+//        
+//            disableButton.addActionListener(e -> handleMaintenanceMode(false, null));
+//            
+//            buttonPanel.add(enableButton);
+//            buttonPanel.add(disableButton);
+//            
+//            panel.add(new JLabel("Maintenance Reason:"), BorderLayout.NORTH);
+//            panel.add(new JScrollPane(reasonArea), BorderLayout.CENTER);
+//            panel.add(buttonPanel, BorderLayout.SOUTH);
+//            
+//            return panel;
+//        }
     
         private JPanel createCapacityPanel() {
             JPanel panel = new JPanel(new BorderLayout(10, 10));
@@ -451,9 +454,9 @@ public class EmployeeGUI extends JFrame {
             
             JPanel inputPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
             JSpinner capacitySpinner = new JSpinner(new SpinnerNumberModel(
-                Constants.DEFAULT_GARAGE_CAPACITY,
-                Constants.MIN_GARAGE_CAPACITY,
-                Constants.MAX_GARAGE_CAPACITY,
+                100,
+                10,
+                1000,
                 10
             ));
             
@@ -462,7 +465,7 @@ public class EmployeeGUI extends JFrame {
             
             JButton updateButton = new JButton("Update Capacity");
             updateButton.addActionListener(e -> 
-                handleCapacityAdjustment((Integer)capacitySpinner.getValue()));
+                handleCapacityAdjustment(assignedGarageId, (Integer)capacitySpinner.getValue()));
             
             panel.add(inputPanel, BorderLayout.CENTER);
             panel.add(updateButton, BorderLayout.SOUTH);
@@ -478,23 +481,31 @@ public class EmployeeGUI extends JFrame {
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.insets = new Insets(5, 5, 5, 5);
             
-            // Hourly rate
-            SpinnerNumberModel hourlyModel = new SpinnerNumberModel(
-                Constants.DEFAULT_FEE_HOURLY,
-                Constants.MIN_RATE,
-                Constants.MAX_RATE,
+            // Fee type
+            JComboBox<String> feeType = new JComboBox<>(new String[] {FeeType.DAILY.toString(), FeeType.HOURLY.toString()});
+            
+            
+            // Rate
+            SpinnerNumberModel rateModel = new SpinnerNumberModel(
+                200,
+                50,
+                10000,
                 50
             );
-            JSpinner hourlySpinner = new JSpinner(hourlyModel);
+            JSpinner rateSpinner = new JSpinner(rateModel);
             
             gbc.gridx = 0; gbc.gridy = 0;
-            inputPanel.add(new JLabel("Hourly Rate (cents):"), gbc);
+            inputPanel.add(new JLabel("Rate Type:"), gbc);
             gbc.gridx = 1;
-            inputPanel.add(hourlySpinner, gbc);
+            inputPanel.add(feeType, gbc);
+            gbc.gridx = 0; gbc.gridy = 1;
+            inputPanel.add(new JLabel("Rate (cents):"), gbc);
+            gbc.gridx = 1;
+            inputPanel.add(rateSpinner, gbc);
             
             JButton updateButton = new JButton("Update Rates");
             updateButton.addActionListener(e -> 
-                handleRateUpdate((Integer)hourlySpinner.getValue()));
+                handleRateUpdate((FeeType) feeType.getSelectedItem(), (Integer)rateSpinner.getValue()));
             
             panel.add(inputPanel, BorderLayout.CENTER);
             panel.add(updateButton, BorderLayout.SOUTH);
@@ -502,39 +513,41 @@ public class EmployeeGUI extends JFrame {
             return panel;
         }
     
-        private void handleMaintenanceMode(boolean enable, String reason) {
-            try {
-                checkConnection();
-                
-                Message response = client.sendMessage(
-                    new Message(MessageType.UPDATE,
-                        enable ? "MAINTENANCE:ON:" + reason : "MAINTENANCE:OFF")
-                );
-                
-                if (response.getType() == MessageType.SUCCESS) {
-                    String msg = enable ? "Maintenance mode enabled" : "Maintenance mode disabled";
-                    outputArea.append(msg + "\n");
-                    JOptionPane.showMessageDialog(this,
-                        msg,
-                        "Success",
-                        JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    handleErrorResponse("maintenance mode update", response.getData());
-                }
-            } catch (Exception e) {
-                handleError("maintenance mode update", e);
-            }
-        }
+//        private void handleMaintenanceMode(boolean enable, String reason) {
+//            try {
+//                checkConnection();
+//                
+//                Message response = client.sendMessage(
+//                    new Message(MessageType.UPDATE,
+//                        enable ? "MAINTENANCE:ON:" + reason : "MAINTENANCE:OFF")
+//                );
+//                
+//                if (response.getData("__status__") == MessageStatus.SUCCESS) {
+//                    String msg = enable ? "Maintenance mode enabled" : "Maintenance mode disabled";
+//                    outputArea.append(msg + "\n");
+//                    JOptionPane.showMessageDialog(this,
+//                        msg,
+//                        "Success",
+//                        JOptionPane.INFORMATION_MESSAGE);
+//                } else {
+//                    handleErrorResponse("maintenance mode update", response.getData());
+//                }
+//            } catch (Exception e) {
+//                handleError("maintenance mode update", e);
+//            }
+//        }
     
-        private void handleCapacityAdjustment(int newCapacity) {
+        private void handleCapacityAdjustment(int garageId, int newCapacity) {
             try {
                 checkConnection();
                 
-                Message response = client.sendMessage(
-                    new Message(MessageType.UPDATE, "CAPACITY:" + newCapacity)
-                );
+                Message request = new Message(MessageType.UPDATE_GARAGE_CAPACITY);
+                request.setData("garageId", 0);
+                request.setData("totalSpaces", newCapacity);
                 
-                if (response.getType() == MessageType.SUCCESS) {
+                Message response = client.sendMessage(request);
+                
+                if (response.getData("__status__") == MessageStatus.SUCCESS) {
                     outputArea.append("Capacity updated successfully\n");
                     JOptionPane.showMessageDialog(this,
                         "Capacity updated to " + newCapacity,
@@ -548,15 +561,17 @@ public class EmployeeGUI extends JFrame {
             }
         }
     
-        private void handleRateUpdate(int newRate) {
+        private void handleRateUpdate(FeeType type, int newRate) {
             try {
                 checkConnection();
+                Message request = new Message(MessageType.UPDATE_FEE);
+                request.setData("garageId", assignedGarageId);
+                request.setData("feeType", type);
+                request.setData("cost", newRate);
                 
-                Message response = client.sendMessage(
-                    new Message(MessageType.UPDATE, "RATE:HOURLY:" + newRate)
-                );
+                Message response = client.sendMessage(request);
                 
-                if (response.getType() == MessageType.SUCCESS) {
+                if (response.getData("__status__") == MessageStatus.SUCCESS) {
                     outputArea.append("Rate updated successfully\n");
                     JOptionPane.showMessageDialog(this,
                         String.format("Rate updated to $%.2f/hour", newRate/100.0),
@@ -586,10 +601,10 @@ public class EmployeeGUI extends JFrame {
             }
         }
     
-        private void handleErrorResponse(String operation, String errorMessage) {
-            outputArea.append(String.format("Failed to process %s: %s\n", operation, errorMessage));
+        private void handleErrorResponse(String operation, Map<String, Object> map) {
+            outputArea.append(String.format("Failed to process %s: %s\n", operation, map));
             JOptionPane.showMessageDialog(this,
-                errorMessage,
+                map,
                 operation.substring(0, 1).toUpperCase() + operation.substring(1) + " Error",
                 JOptionPane.ERROR_MESSAGE);
         }
@@ -603,7 +618,7 @@ public class EmployeeGUI extends JFrame {
             }
         }
     
-        public static void main(String[] args) {
+        public static void run(String host, int port) {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
             } catch (Exception e) {
@@ -611,7 +626,7 @@ public class EmployeeGUI extends JFrame {
             }
             
             SwingUtilities.invokeLater(() -> {
-                EmployeeGUI gui = new EmployeeGUI();
+                EmployeeGUI gui = new EmployeeGUI(host, port);
                 gui.setVisible(true);
             });
         }
