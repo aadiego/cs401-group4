@@ -72,7 +72,7 @@ public class User {
 
     	if (userId != -1) {
 	    	User foundUser = load(userId);
-	    	if (foundUser.password == password) {
+	    	if (foundUser.password.equals(password)) {
 	    		return foundUser;
 	    	} else {
 	    		throw new Exception ("Invalid login.");

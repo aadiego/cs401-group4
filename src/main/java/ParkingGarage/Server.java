@@ -59,33 +59,45 @@ class ClientHandler implements Runnable {
 
                 // handle messages types
                 switch (messageType) {
-                    case LOGIN:
-                    	facade.handleLogin(message);
-                        break;
-                    case CREATE_USER:
-                    	facade.handleCreateUser(message);
-                        break;
+	                case CHECK_TICKET:
+	                	facade.handleCheckTicket(message);
+	                	break;
+	                case CREATE_USER:
+	                	facade.handleCreateUser(message);
+	                    break;
+                    case GET_GARAGES:
+                    	facade.handleGetGarages(message);
+                    	break;
                     case ENTER_GARAGE:
                     	facade.handleEnterGarage(message);
                         break;
                     case EXIT_GARAGE:
                     	facade.handleExitGarage(message);
                         break;
-                    case CHECK_TICKET:
-                    	facade.handleCheckTicket(message);
-                    	break;
+                    case LOGIN:
+                    	facade.handleLogin(message);
+                        break;
+                    case LOGOUT:
+                    	facade.handleLogout(message);
+                        break;
                     case PAYMENT:
                     	facade.handlePayment(message);
                     	break;
                     case REPORT:
                     	facade.handleReport(message);
                         break;
-                    case LOGOUT:
-                    	facade.handleLogout(message);
-                        break;
+	                case SYSTEM:
+	                	facade.handleSystem(message);
+	                	break;
                     case QUIT:
                     	facade.handleQuit(message);
                         return;
+                    case UPDATE_FEE:
+                    	facade.handleUpdateFee(message);
+                    	break;
+                    case UPDATE_GARAGE_CAPACITY:
+                    	facade.handleUpdateGarageCapacity(message);
+                    	break;
                     default:
                         System.out.println("Unknown message type received.");
                         message.setData("__status__", MessageStatus.FAILURE);

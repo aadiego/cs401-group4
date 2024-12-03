@@ -26,6 +26,10 @@ public class Message implements Serializable {
     public MessageType getMessageType() {
         return type;
     }
+    
+    public Map<String, Object> getData() {
+    	return data;
+    }
 
     public Object getData(String key) {
         return data.get(key);

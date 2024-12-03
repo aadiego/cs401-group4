@@ -9,7 +9,6 @@ public class DataLoader {
 	// Attributes
 	private static JSONObject data = null;
 	private static String sourceName = "application_data.json";
-	private static boolean modified = false;
 
 	// Constructor
 	public DataLoader() {
@@ -62,7 +61,6 @@ public class DataLoader {
 				// Close the scanner, set the modified flag to false, and return the raw JSON
 				// string
 				scanner.close();
-				modified = false;
 				data = new JSONObject(rawJsonString);
 				return;
 			} catch (JSONException e) {
@@ -78,22 +76,19 @@ public class DataLoader {
 				System.out.println("Error creating file: " + sourceName);
 			}
 		}
-		modified = false;
 		data = new JSONObject();
 	}
 
 	// Save data to file
 	public void saveData() {
 		// Write the JSON Object data to the file
-		if (modified) {
-			try {
-				// Create a new file writer
-				FileWriter fileWriter = new FileWriter(sourceName);
-				data.write(fileWriter, 2, 0);
-				fileWriter.close();
-			} catch (Exception e) {
-				System.out.println("Error saving data to file: " + sourceName);
-			}
+		try {
+			// Create a new file writer
+			FileWriter fileWriter = new FileWriter(sourceName);
+			data.write(fileWriter, 2, 0);
+			fileWriter.close();
+		} catch (Exception e) {
+			System.out.println("Error saving data to file: " + sourceName);
 		}
 	}
 
@@ -118,7 +113,6 @@ public class DataLoader {
 
 	// Data setters
 	public <T> JSONObject put(String key, T value) {
-		modified = true;
 		return data.put(key, value);
 	}
 }

@@ -5,6 +5,13 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import org.json.JSONObject;
 
 public class ClientHandlerFacade {
     private Socket socket;
@@ -18,6 +25,14 @@ public class ClientHandlerFacade {
 		this.out = out;
 	}
 	
+	public void handleSystem(Message message) throws IOException {
+		message.removeData("ping");
+		message.setData("__status__", MessageStatus.SUCCESS);
+		message.setData("pong", true);
+		out.writeObject(message);
+		out.flush();
+	}
+	
 	public void handleLogin(Message message) throws IOException {
 		String username = (String) message.getData("username");
 		String password = (String) message.getData("password");
@@ -27,7 +42,7 @@ public class ClientHandlerFacade {
 			message.setData("__status__", MessageStatus.SUCCESS);
 			message.setData("userId", user.getId());
 			message.setData("role", user.getRole());
-			message.setData("defaultGarage", user.getDefaultGarage());
+			message.setData("defaultGarageId", user.getDefaultGarage().getId());
 			userContext = user;
 		} catch (Exception ex) {
 			message.setData("__status__", MessageStatus.FAILURE);
@@ -47,6 +62,7 @@ public class ClientHandlerFacade {
 			
 			try {
 				User newUser = new User(name, username, password, role, assignedGarage);
+				newUser.save();
 				message.setData("__status__", MessageStatus.SUCCESS);
 				message.setData("userId", newUser.getId());
 			} catch (Exception ex) {
@@ -98,6 +114,9 @@ public class ClientHandlerFacade {
 			LocalDateTime now = LocalDateTime.now();
 			ticket.setExitTime(now);
 			ticket.setPayment(payment);
+			ticket.getGarage().incrementAvailableSpaces();
+			ticket.save();
+			
 			message.setData("__status__", MessageStatus.SUCCESS);
 			message.setData("exitDateTime", now);
 		} catch (Exception ex) {
@@ -137,8 +156,10 @@ public class ClientHandlerFacade {
 			Payment payment;
 			if (userContext == null) {
 				payment = new Payment(paymentMethod, value);
+				payment.save();
 			} else {
 				payment = new Payment(userContext, paymentMethod, value);
+				payment.save();
 				message.setData("capturedByName", payment.getCapturedBy().getName());
 			}
 			message.setData("__status__", MessageStatus.SUCCESS);
@@ -152,9 +173,11 @@ public class ClientHandlerFacade {
 		out.flush();
 	}
 
-	public void handleReport(Message message) {
-		
-		
+	public void handleReport(Message message) throws IOException {
+		RMSystem facade = new RMSystem();
+		facade.generateSpaceAvailabilityReport(message, Garage.load((int) message.getData("garageId")));
+		out.writeObject(message);
+		out.flush();
 	}
 
 	public void handleLogout(Message message) throws IOException {
@@ -169,5 +192,74 @@ public class ClientHandlerFacade {
 		socket = null;
 		in = null;
 		out = null;
+	}
+
+	public void handleGetGarages(Message message) throws IOException {
+		int garageId = -1;
+		try {
+			garageId = (int) message.getData("garageId");
+		} catch (Exception ex) {}
+		
+		Map<String, Integer> garages = new HashMap<>();
+		try {
+			if (garageId != -1) {
+				Garage garage = Garage.load(garageId);
+				garages.put(garage.getName(), garage.getId());
+			} else {
+				DataLoader dataLoader = new DataLoader();
+				JSONObject garagesNode = dataLoader.getJSONObject("garages");
+				for(String key : garagesNode.keySet()) {
+					if (!key.equals("autoIncrement")) {
+						Garage garage = Garage.load(Integer.parseInt(key));
+						garages.put(garage.getName(), garage.getId());
+					}
+				}
+			}
+			message.setData("__status__", MessageStatus.SUCCESS);
+			message.setData("garages", garages);
+		} catch (Exception ex) {
+			message.setData("__status__", MessageStatus.FAILURE);
+			message.setData("message", ex.getMessage());
+		}
+		out.writeObject(message);
+		out.flush();		
+	}
+
+	public void handleUpdateFee(Message message) throws IOException {
+		try {
+			int garageId = (int) message.getData("garageId");
+			FeeType feeType = (FeeType) message.getData("feeType");
+			int cost = (int) message.getData("cost");
+			
+			Fee newFee = new Fee(feeType, cost);
+			newFee.save();
+			Garage garage = Garage.load(garageId);
+			garage.setParkingFee(newFee);
+			garage.save();
+			message.setData("__status__", MessageStatus.SUCCESS);
+		} catch (Exception ex) {
+			message.setData("__status__", MessageStatus.FAILURE);
+			message.setData("message", ex.getMessage());
+		}
+		out.writeObject(message);
+		out.flush();
+	}
+
+	public void handleUpdateGarageCapacity(Message message) throws IOException {
+		try {
+			int garageId = (int) message.getData("garageId");
+			int totalSpaces = (int) message.getData("totalSpaces");
+			
+			Garage garage = Garage.load(garageId);
+			garage.setTotalSpaces(totalSpaces);
+			garage.save();
+			
+			message.setData("__status__", MessageStatus.SUCCESS);
+		} catch (Exception ex) {
+			message.setData("__status__", MessageStatus.FAILURE);
+			message.setData("message", ex.getMessage());
+		}
+		out.writeObject(message);
+		out.flush();
 	}
  }

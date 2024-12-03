@@ -117,8 +117,9 @@ public class Factory {
 			payment = PaymentFactory(paymentValues);
 		}
 		
-		Ticket ticket = new Ticket(garage);
+		Ticket ticket = null;
 		try {
+			ticket = new Ticket(garage);
 			Field idField = ticket.getClass().getDeclaredField("id");
 			idField.setAccessible(true);
 			idField.set(ticket, id);
@@ -152,8 +153,9 @@ public class Factory {
 		RoleType role = faker.options().option(RoleType.class);
 		Garage assignedGarage = GarageFactory();
 		
-		User user = new User(name, username, password, role, assignedGarage);
+		User user = null;
 		try {
+			user = new User(name, username, password, role, assignedGarage);
 			Field userIdField = user.getClass().getDeclaredField("userId");
 			userIdField.setAccessible(true);
 			userIdField.set(user, userId);

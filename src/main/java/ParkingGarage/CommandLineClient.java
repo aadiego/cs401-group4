@@ -6,19 +6,27 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
 
-public class Client {
+public class CommandLineClient {
+	private String host;
+	private int port;
+	
+	public CommandLineClient(String host, int port) {
+		this.host = host;
+		this.port = port;
+		run();
+	}
 
-    public static void main(String[] args) {
+    public void run() {
 
         try {
             // Create Scanner and prompt for server details
             Scanner sc = new Scanner(System.in);
-            System.out.print("Enter the port number (default 12345): ");
-            int port = sc.nextInt();
-            sc.nextLine(); // Consume newline
+            // System.out.print("Enter the port number (default 12345): ");
+            // int port = sc.nextInt();
+            // sc.nextLine(); // Consume newline
 
-            System.out.print("Enter server address: ");
-            String host = sc.nextLine();
+            // System.out.print("Enter server address: ");
+            // String host = sc.nextLine();
 
             // Connect to server
             Socket socket = new Socket(host, port);
@@ -78,14 +86,14 @@ public class Client {
                         System.out.print("Enter your password: ");
                         String password = sc.nextLine();
 
-                        System.out.print("Enter your role (USER or EMPLOYEE): ");
+                        System.out.print("Enter your role (EMPLOYEE or ADMIN): ");
                         String roleInput = sc.nextLine().toUpperCase();
                         RoleType role;
                         try {
                             role = RoleType.valueOf(roleInput);
                         } catch (IllegalArgumentException e) {
-                            System.out.println("Invalid role. Defaulting to USER.");
-                            role = RoleType.USER;
+                            System.out.println("Invalid role. Defaulting to EMOPLOYEE.");
+                            role = RoleType.EMPLOYEE;
                         }
 
                         System.out.print("Enter your assigned garage ID: ");

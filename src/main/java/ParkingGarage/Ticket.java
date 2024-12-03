@@ -140,16 +140,17 @@ public class Ticket extends DataLoaderable {
 	
     // Calculate fees based on  FeeType
     public int calculateFee() {
+    	int cost = 0;
         Duration duration = Duration.between(entryDateTime, LocalDateTime.now());
-        long hours = (int) Math.ceil(duration.toMinutes() / 60);
-        long days = (int) Math.ceil(duration.toHours() / 24);
+        long hours = Math.max((long) Math.ceil(duration.toMinutes() / 60.0), 1);
+        long days = Math.max((long) Math.ceil(duration.toHours() / 24.0), 1);
 
         if (ticketFee.getType() == FeeType.HOURLY) {
-            ticketFee = new Fee(FeeType.HOURLY, (int) (hours * ticketFee.getCost()));
+        	cost = (int) (hours * ticketFee.getCost());
         } else if (ticketFee.getType() == FeeType.DAILY) {
-            ticketFee = new Fee(FeeType.DAILY, (int) (days * ticketFee.getCost()));
+        	cost = (int) (days * ticketFee.getCost());
         }
-        return ticketFee.getCost();
+        return cost;
     }
 
 	

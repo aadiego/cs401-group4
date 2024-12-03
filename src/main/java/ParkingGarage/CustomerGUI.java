@@ -1,8 +1,4 @@
-package client.gui.customer;
-
-import client.network.ParkingClient;
-import common.enums.MessageType;
-import common.model.Message;
+package ParkingGarage;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,6 +6,9 @@ import java.awt.datatransfer.StringSelection;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,18 +16,19 @@ public class CustomerGUI extends JFrame {
     private static final Logger LOGGER = Logger.getLogger(CustomerGUI.class.getName());
     private static final long serialVersionUID = 1L;
     
-    private final ParkingClient client;
+    private final GUIClientHandler client;
     private JTextArea outputArea;
     private JButton getTicketButton;
     private JButton payTicketButton;
-    private JButton exitButton;
+    // private JButton exitButton;
     private JLabel connectionStatus;
     private Timer connectionCheckTimer;
     private JPanel operationsPanel;
     private JPanel statusPanel;
+    private Map<String, Integer> garages;
 
-    public CustomerGUI() {
-        client = new ParkingClient();
+    public CustomerGUI(String host, int port) {
+        client = new GUIClientHandler(host, port);
         initializeGUI();
         startConnectionCheck();
     }
@@ -85,7 +85,8 @@ public class CustomerGUI extends JFrame {
     }
     private JComboBox<String> garageSelector;
 
-    private void createOperationsPanel() {
+    @SuppressWarnings("unchecked")
+	private void createOperationsPanel() {
         operationsPanel = new JPanel();
         operationsPanel.setLayout(new BoxLayout(operationsPanel, BoxLayout.Y_AXIS));
         operationsPanel.setBorder(BorderFactory.createTitledBorder("Operations"));
@@ -95,15 +96,18 @@ public class CustomerGUI extends JFrame {
         getTicketButton = new JButton("Get Ticket");
         getTicketButton.addActionListener(e -> getTicket());
         
-        payTicketButton = new JButton("Pay Ticket");
-        payTicketButton.addActionListener(e -> payTicket());
+        payTicketButton = new JButton("Pay Ticket & Exit");
+        payTicketButton.addActionListener(e -> {
+        	Map<String, Integer> paymentInfo = payTicket();
+        	exitGarage(paymentInfo);
+        });
         
-        exitButton = new JButton("Exit Garage");
-        exitButton.addActionListener(e -> exitGarage());
+        //exitButton = new JButton("Exit Garage");
+        //exitButton.addActionListener(e -> exitGarage());
 
         buttonPanel.add(getTicketButton);
         buttonPanel.add(payTicketButton);
-        buttonPanel.add(exitButton);
+        // buttonPanel.add(exitButton);
 
         // Add padding around buttons
         JPanel paddedPanel = new JPanel(new BorderLayout());
@@ -113,9 +117,17 @@ public class CustomerGUI extends JFrame {
         operationsPanel.add(paddedPanel);
         JPanel selectorPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         selectorPanel.add(new JLabel("Select Garage:"));
-        garageSelector = new JComboBox<>(new String[]{"MAIN", "NORTH"});
+       
+        garageSelector = new JComboBox<>();
+        garages = client.getGarages();
+        
+        if (garages != null) {
+	        for(Map.Entry<String, Integer> entry : garages.entrySet()) {
+	        	garageSelector.addItem(entry.getKey());;
+	        }
+        }
+        
         selectorPanel.add(garageSelector);
-
         buttonPanel.add(selectorPanel);
     }
 
@@ -140,7 +152,7 @@ public class CustomerGUI extends JFrame {
             
             getTicketButton.setEnabled(isConnected);
             payTicketButton.setEnabled(isConnected);
-            exitButton.setEnabled(isConnected);
+            // exitButton.setEnabled(isConnected);
             
             if (!isConnected) {
                 handleDisconnection();
@@ -164,27 +176,27 @@ public class CustomerGUI extends JFrame {
             checkConnection();
             outputArea.append("Requesting new ticket...\n");
             
-            String selectedGarage = (String)garageSelector.getSelectedItem();
-            Message response = client.sendMessage(new Message(MessageType.CREATE, "TICKET:" + selectedGarage));
-            if (response.getType() == MessageType.SUCCESS) {
-                String[] parts = response.getData().split(":");
-                if (parts.length >= 2) {
-                    String ticketBarcode = parts[1];
-                    outputArea.append(String.format("Ticket created successfully. Barcode: %s\n", 
-                        ticketBarcode));
-                    
-                    Toolkit.getDefaultToolkit()
-                           .getSystemClipboard()
-                           .setContents(new StringSelection(ticketBarcode), null);
-                           
-                    outputArea.append("Ticket barcode copied to clipboard.\n");
-                    
-                    JOptionPane.showMessageDialog(this,
-                        "Ticket created successfully!\nBarcode: " + ticketBarcode + 
-                        "\n\nBarcode has been copied to clipboard.",
-                        "Ticket Created",
-                        JOptionPane.INFORMATION_MESSAGE);
-                }
+            int garageId = (int) garages.get(garageSelector.getSelectedItem());
+            Message request = new Message(MessageType.ENTER_GARAGE);
+            request.setData("garageId", garageId);
+            
+            Message response = client.sendMessage(request);
+            if (response.getData("__status__") == MessageStatus.SUCCESS) {
+                String ticketBarcode = Integer.toString((int) response.getData("ticketId"));
+                outputArea.append(String.format("Ticket created successfully. Barcode: %s\n", 
+                    ticketBarcode));
+                
+                Toolkit.getDefaultToolkit()
+                       .getSystemClipboard()
+                       .setContents(new StringSelection(ticketBarcode), null);
+                       
+                outputArea.append("Ticket barcode copied to clipboard.\n");
+                
+                JOptionPane.showMessageDialog(this,
+                    "Ticket created successfully!\nBarcode: " + ticketBarcode + 
+                    "\n\nBarcode has been copied to clipboard.",
+                    "Ticket Created",
+                    JOptionPane.INFORMATION_MESSAGE);
             } else {
                 handleErrorResponse("ticket creation", response.getData());
             }
@@ -193,37 +205,48 @@ public class CustomerGUI extends JFrame {
         }
     }
         
-    private void payTicket() {
+    private Map<String, Integer> payTicket() {
         try {
             checkConnection();
             
             String barcode = JOptionPane.showInputDialog(this, 
                 "Enter ticket barcode:", 
-                "Pay Ticket",
+                "Check Ticket & Pay",
                 JOptionPane.PLAIN_MESSAGE);
                 
             if (barcode != null && !barcode.trim().isEmpty()) {
+            	Message checkTicketRequest = new Message(MessageType.CHECK_TICKET);
+            	checkTicketRequest.setData("ticketId", Integer.parseInt(barcode));
+            	Message ticketResponse = client.sendMessage(checkTicketRequest);
+            	
+            	outputArea.append("Ticket: " + barcode + "\n");
+            	outputArea.append("Entry Date Time: " + (LocalDateTime) ticketResponse.getData("entryDateTime") + "\n");
+            	outputArea.append("Fee: $" + ((int)ticketResponse.getData("calculatedFee")) / 100 + "\n");
                 outputArea.append("Processing payment for ticket: " + barcode + "\n");
                 
-                Message response = client.sendMessage(
-                    new Message(MessageType.CREATE, "PAYMENT:" + barcode + ":CREDIT_CARD")
-                );
+                Message request = new Message(MessageType.PAYMENT);
+                request.setData("paymentMethod", PaymentMethod.CREDIT);
+                request.setData("value", (int) ticketResponse.getData("calculatedFee"));
                 
-                if (response.getType() == MessageType.SUCCESS) {
-                    String[] parts = response.getData().split(":");
-                    if (parts.length >= 2) {
-                        String transactionId = parts[1];
-                        outputArea.append(String.format(
-                            "Payment processed successfully. Transaction ID: %s\n", 
-                            transactionId));
-                            
-                        JOptionPane.showMessageDialog(this,
-                            "Payment successful!\n" +
-                            "Transaction ID: " + transactionId + "\n" +
-                            "Please keep your receipt for exit.",
-                            "Payment Processed",
-                            JOptionPane.INFORMATION_MESSAGE);
-                    }
+                Message response = client.sendMessage(request);
+                
+                if (response.getData("__status__") == MessageStatus.SUCCESS) {                	
+                    String transactionId = Integer.toString((int) response.getData("paymentId"));
+                    outputArea.append(String.format(
+                        "Payment processed successfully. Transaction ID: %s\n", 
+                        transactionId));
+                        
+                    JOptionPane.showMessageDialog(this,
+                        "Payment successful!\n" +
+                        "Transaction ID: " + transactionId + "\n" +
+                        "Please keep your receipt for exit.",
+                        "Payment Processed",
+                        JOptionPane.INFORMATION_MESSAGE);
+                    
+                    Map<String, Integer> returnValues = new HashMap<String, Integer>();
+                    returnValues.put("ticketId", Integer.parseInt(barcode));
+                    returnValues.put("paymentId", (int) response.getData("paymentId"));
+                    return returnValues;
                 } else {
                     handleErrorResponse("payment", response.getData());
                 }
@@ -231,35 +254,34 @@ public class CustomerGUI extends JFrame {
         } catch (Exception e) {
             handleError("payment processing", e);
         }
+        return null;
     }
 
-    private void exitGarage() {
+    private void exitGarage(Map<String, Integer> paymentInfo) {
         try {
             checkConnection();
             
-            String barcode = JOptionPane.showInputDialog(this,
-                "Enter ticket barcode:",
-                "Exit Garage",
-                JOptionPane.PLAIN_MESSAGE);
-                
-            if (barcode != null && !barcode.trim().isEmpty()) {
-                outputArea.append("Processing exit for ticket: " + barcode + "\n");
-                
-                Message response = client.sendMessage(
-                    new Message(MessageType.CREATE, "EXIT:" + barcode)
-                );
-                
-                if (response.getType() == MessageType.SUCCESS) {
-                    outputArea.append("Exit processed successfully. Drive safely!\n");
-                    JOptionPane.showMessageDialog(this,
-                        "Exit processed successfully!\n" +
-                        "Please exit within 15 minutes.\n" +
-                        "Thank you for your business!",
-                        "Exit Processed",
-                        JOptionPane.INFORMATION_MESSAGE);
-                } else {
-                    handleErrorResponse("exit", response.getData());
-                }
+            int ticketId = paymentInfo.get("ticketId");
+            int paymentId = paymentInfo.get("paymentId");
+            
+            outputArea.append("Processing exit for ticket: " + Integer.toString(ticketId) + "\n");
+            
+            Message request = new Message(MessageType.EXIT_GARAGE);
+            request.setData("ticketId", ticketId);
+            request.setData("paymentId", paymentId);
+            
+            Message response = client.sendMessage(request);
+            
+            if (response.getData("__status__") == MessageStatus.SUCCESS) {
+                outputArea.append("Exit processed successfully. Drive safely!\n");
+                JOptionPane.showMessageDialog(this,
+                    "Exit processed successfully!\n" +
+                    "Please exit within 15 minutes.\n" +
+                    "Thank you for your business!",
+                    "Exit Processed",
+                    JOptionPane.INFORMATION_MESSAGE);
+            } else {
+                handleErrorResponse("exit", response.getData());
             }
         } catch (Exception e) {
             handleError("exit processing", e);
@@ -282,10 +304,10 @@ public class CustomerGUI extends JFrame {
         }
     }
 
-    private void handleErrorResponse(String operation, String errorMessage) {
-        outputArea.append(String.format("Failed to process %s: %s\n", operation, errorMessage));
+    private void handleErrorResponse(String operation, Map<String, Object> map) {
+        outputArea.append(String.format("Failed to process %s: %s\n", operation, map));
         JOptionPane.showMessageDialog(this,
-            errorMessage,
+            map,
             operation.substring(0, 1).toUpperCase() + operation.substring(1) + " Error",
             JOptionPane.ERROR_MESSAGE);
     }
@@ -299,7 +321,7 @@ public class CustomerGUI extends JFrame {
         }
     }
 
-    public static void main(String[] args) {
+    public static void run(String host, int port) {
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
@@ -307,7 +329,7 @@ public class CustomerGUI extends JFrame {
         }
         
         SwingUtilities.invokeLater(() -> {
-            CustomerGUI gui = new CustomerGUI();
+            CustomerGUI gui = new CustomerGUI(host, port);
             gui.setVisible(true);
         });
     }

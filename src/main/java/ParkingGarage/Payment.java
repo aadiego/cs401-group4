@@ -97,7 +97,9 @@ public class Payment {
     }
 
     public void save() {
-    	this.capturedBy.save();
+    	if (this.capturedBy != null) {
+    		this.capturedBy.save();
+    	}
     	
         // save payment variables into JSON object
         JSONObject payment = new JSONObject();
